@@ -1,5 +1,3 @@
-// Plain templatization of Linus code, not changing it for now
-
 #define TRUE 1
 #define FALSE 0
 #define BASE_SENSITIVITY 1.0f
@@ -8,16 +6,14 @@
 #define SIR_VALUE 0.4f
 
 // Swap utility function
-template<typename Type>
-__global__ inline void swap(Type * array, unsigned int x, unsigned int y) {
-    Type temp = array[x];
+__global__ inline void swap(float * array, unsigned int x, unsigned int y) {
+    float temp = array[x];
     array[x] = array[y];
     array[y] = temp;
 }
 
 // Sort an array in place
-template<typename Type>
-__device__ Type bitonic_sort(Type * values, int n, int nr_flagged) {
+__device__ float bitonic_sort(float * values, int n, int nr_flagged) {
     const int tid = threadIdx.x;
 
     for ( int k = 2; k <= n; k *= 2) {
@@ -40,8 +36,7 @@ __device__ Type bitonic_sort(Type * values, int n, int nr_flagged) {
     return values[nr_flagged + (n - nr_flagged) / 2];
 }
 
-template<typename Type>
-__device__ Type sum_values(Type * values) {
+__device__ float sum_values(float * values) {
     unsigned int tid = threadIdx.x;
 
     for ( unsigned int s = blockDim.x / 2; s > 32; s >>= 1 ) {
@@ -63,15 +58,14 @@ __device__ Type sum_values(Type * values) {
     return values[0];
 }
 
-__device__ void count_flags(unsigned int * nr_flagged, LocalFlagsType * flags) {
+__device__ void count_flags(unsigned int * nr_flagged, LocalFlagsfloat * flags) {
     unsigned int tid = threadIdx.x;
     if ( flags[tid] == TRUE ) {
         atomicAdd(nr_flagged, 1);
     }
 }
 
-template<typename Type>
-__device__ void sum_threshold(Type * values, LocalFlagsType * flags, float median, float stddev, int n) {
+__device__ void sum_threshold(float * values, LocalFlagsfloat * flags, float median, float stddev, int n) {
     int window = 1;
     int tid = threadIdx.x;
     float factor = stddev * BASE_SENSITIVITY;
@@ -100,8 +94,8 @@ __device__ void sum_threshold(Type * values, LocalFlagsType * flags, float media
     }
 }
 
-__global__ void sir_operator(LocalFlagsType * d_flags, int n) {
-    LocalFlagsType * flags = &(d_flags[(blockIdx.x * n)]);
+__global__ void sir_operator(LocalFlagsfloat * d_flags, int n) {
+    LocalFlagsfloat * flags = &(d_flags[(blockIdx.x * n)]);
     float credit = 0.0f;
     float w;
     float max_credit0;
@@ -122,11 +116,10 @@ __global__ void sir_operator(LocalFlagsType * d_flags, int n) {
 }
 
 // MODIFIED, not equivalent to Linus code because our data structures are different
-template<typename Type>
-__global__ void reduce_freq(Type * values, Type * results, unsigned int number_of_channels,
+__global__ void reduce_freq(float * values, float * results, unsigned int number_of_channels,
     unsigned int number_of_samples) {
-    extern __shared__ Type shared[];
-    Type result = 0;
+    extern __shared__ float shared[];
+    float result = 0;
 
     // NOTE: Terrible memory access pattern
     for ( unsigned int channel = threadIdx.x; channel < number_of_channels; channel += blockDim.x) {
@@ -140,8 +133,7 @@ __global__ void reduce_freq(Type * values, Type * results, unsigned int number_o
     }
 }
 
-template<typename Type>
-__device__ void winsorize(Type * shared, int nr_flagged, int n) {
+__device__ void winsorize(float * shared, int nr_flagged, int n) {
     if ( threadIdx.x < (0.1f * (n - nr_flagged) + nr_flagged) ) {
         shared[threadIdx.x] = shared[(int)(0.1f * (n - nr_flagged) + nr_flagged)];
     }
@@ -151,10 +143,9 @@ __device__ void winsorize(Type * shared, int nr_flagged, int n) {
 }
 
 // MODIFIED, not equivalent to Linus code because our data structures are different
-template<typename Type>
-__global__ void reduce_time(Type * values, Type * results, unsigned int number_of_samples) {
-    extern __shared__ Type shared[];
-    Type result = 0;
+__global__ void reduce_time(float * values, float * results, unsigned int number_of_samples) {
+    extern __shared__ float shared[];
+    float result = 0;
 
     for ( unsigned int sample = threadIdx.x; sample < number_of_samples; sample++ ) {
         result += values[(blockIdx.x * number_of_samples) + sample];
@@ -168,14 +159,13 @@ __global__ void reduce_time(Type * values, Type * results, unsigned int number_o
 }
 
 // MODIFIED, not equivalent to Linus code because our data structures are different
-template<typename Type>
-__global__ void flagger_freq(Type * values, LocalFlagsType * global_flags, unsigned int * nr_flagged,
+__global__ void flagger_freq(float * values, LocalFlagsfloat * global_flags, unsigned int * nr_flagged,
     unsigned int number_of_channels, unsigned int number_of_samples) {
-    extern __shared__ Type shared[];
-    LocalFlagsType * local_flags = (LocalFlagsType *) &(shared[number_of_channels]);
+    extern __shared__ float shared[];
+    LocalFlagsfloat * local_flags = (LocalFlagsfloat *) &(shared[number_of_channels]);
     unsigned int tid = threadIdx.x;
-    Type median;
-    Type stddev;
+    float median;
+    float stddev;
 
     // NOTE: terrible memory access pattern
     shared[tid] = values[(threadIdx.x * number_of_samples) + blockIdx.x];
@@ -183,8 +173,8 @@ __global__ void flagger_freq(Type * values, LocalFlagsType * global_flags, unsig
     __syncthreads();
 
     for ( unsigned int i = 0; i < 2; i++ ) {
-        Type sum = 0;
-        Type squared_sum = 0;
+        float sum = 0;
+        float squared_sum = 0;
         unsigned int local_nr_flagged = nr_flagged[blockIdx.x];
 
         median = bitonic_sort(shared, number_of_channels, local_nr_flagged);
@@ -224,22 +214,21 @@ __global__ void flagger_freq(Type * values, LocalFlagsType * global_flags, unsig
 }
 
 // MODIFIED, not equivalent to Linus code because our data structures are different
-template<typename Type>
-__global__ void flagger_time(Type * values, LocalFlagsType * global_flags, unsigned int * nr_flagged,
+__global__ void flagger_time(float * values, LocalFlagsfloat * global_flags, unsigned int * nr_flagged,
     unsigned int number_of_samples) {
-    extern __shared__ Type shared[];
-    LocalFlagsType * local_flags = (LocalFlagsType *) &(shared[number_of_samples]);
+    extern __shared__ float shared[];
+    LocalFlagsfloat * local_flags = (LocalFlagsfloat *) &(shared[number_of_samples]);
     unsigned int tid = threadIdx.x;
-    Type median;
-    Type stddev;
+    float median;
+    float stddev;
 
     shared[tid] = values[(blockIdx.x * number_of_samples) + threadIdx.x];
     local_flags[tid] = 0;
     __syncthreads();
 
     for ( unsigned int i = 0; i < 2; i++ ) {
-        Type sum = 0;
-        Type squared_sum = 0;
+        float sum = 0;
+        float squared_sum = 0;
         unsigned int local_nr_flagged = nr_flagged[blockIdx.x];
 
         median = bitonic_sort(shared, number_of_samples, local_nr_flagged);
