@@ -12,7 +12,7 @@ def swap_control(data, x, y):
 
 
 def test_swap(data_control, data_device):
-    numpy.isclose(data_control, data_device, atol=1.0e-06)
+    return numpy.allclose(data_control, data_device, atol=1.0e-06)
 
 
 def swap():
