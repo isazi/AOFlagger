@@ -6,14 +6,14 @@
 #define SIR_VALUE 0.4f
 
 // Swap utility function
-__global__ inline void swap(float * array, unsigned int x, unsigned int y) {
-    float temp = array[x];
-    array[x] = array[y];
-    array[y] = temp;
+__global__ void swap(float * data, unsigned int x, unsigned int y) {
+    float temp = data[x];
+    data[x] = data[y];
+    data[y] = temp;
 }
 
 // Sort an array in place
-__device__ float bitonic_sort(float * values, int n, int nr_flagged) {
+__global__ void bitonic_sort(float * values, unsigned int n, unsigned int nr_flagged) {
     const int tid = threadIdx.x;
 
     for ( int k = 2; k <= n; k *= 2) {
@@ -33,10 +33,10 @@ __device__ float bitonic_sort(float * values, int n, int nr_flagged) {
             __syncthreads();
         }
     }
-    return values[nr_flagged + (n - nr_flagged) / 2];
+    // return values[nr_flagged + (n - nr_flagged) / 2];
 }
 
-__device__ float sum_values(float * values) {
+__global__ void sum_values(float * values) {
     unsigned int tid = threadIdx.x;
 
     for ( unsigned int s = blockDim.x / 2; s > 32; s >>= 1 ) {
@@ -55,17 +55,17 @@ __device__ float sum_values(float * values) {
         values[tid] += values[tid + 1];
     }
 
-    return values[0];
+    // return values[0];
 }
 
-__device__ void count_flags(unsigned int * nr_flagged, LocalFlagsfloat * flags) {
+__global__ void count_flags(unsigned int * nr_flagged, LocalFlagsfloat * flags) {
     unsigned int tid = threadIdx.x;
     if ( flags[tid] == TRUE ) {
         atomicAdd(nr_flagged, 1);
     }
 }
 
-__device__ void sum_threshold(float * values, LocalFlagsfloat * flags, float median, float stddev, int n) {
+__global__ void sum_threshold(float * values, LocalFlagsfloat * flags, float median, float stddev, int n) {
     int window = 1;
     int tid = threadIdx.x;
     float factor = stddev * BASE_SENSITIVITY;
