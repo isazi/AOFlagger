@@ -58,14 +58,14 @@ __global__ void sum_values(float * values) {
     // return values[0];
 }
 
-__global__ void count_flags(unsigned int * nr_flagged, LocalFlagsfloat * flags) {
+__global__ void count_flags(unsigned int * nr_flagged, float * flags) {
     unsigned int tid = threadIdx.x;
     if ( flags[tid] == TRUE ) {
         atomicAdd(nr_flagged, 1);
     }
 }
 
-__global__ void sum_threshold(float * values, LocalFlagsfloat * flags, float median, float stddev, int n) {
+__global__ void sum_threshold(float * values, float * flags, float median, float stddev, int n) {
     int window = 1;
     int tid = threadIdx.x;
     float factor = stddev * BASE_SENSITIVITY;
@@ -94,8 +94,8 @@ __global__ void sum_threshold(float * values, LocalFlagsfloat * flags, float med
     }
 }
 
-__global__ void sir_operator(LocalFlagsfloat * d_flags, int n) {
-    LocalFlagsfloat * flags = &(d_flags[(blockIdx.x * n)]);
+__global__ void sir_operator(float * d_flags, int n) {
+    float * flags = &(d_flags[(blockIdx.x * n)]);
     float credit = 0.0f;
     float w;
     float max_credit0;
@@ -159,10 +159,10 @@ __global__ void reduce_time(float * values, float * results, unsigned int number
 }
 
 // MODIFIED, not equivalent to Linus code because our data structures are different
-__global__ void flagger_freq(float * values, LocalFlagsfloat * global_flags, unsigned int * nr_flagged,
+__global__ void flagger_freq(float * values, float * global_flags, unsigned int * nr_flagged,
     unsigned int number_of_channels, unsigned int number_of_samples) {
     extern __shared__ float shared[];
-    LocalFlagsfloat * local_flags = (LocalFlagsfloat *) &(shared[number_of_channels]);
+    float * local_flags = (float *) &(shared[number_of_channels]);
     unsigned int tid = threadIdx.x;
     float median;
     float stddev;
@@ -214,10 +214,10 @@ __global__ void flagger_freq(float * values, LocalFlagsfloat * global_flags, uns
 }
 
 // MODIFIED, not equivalent to Linus code because our data structures are different
-__global__ void flagger_time(float * values, LocalFlagsfloat * global_flags, unsigned int * nr_flagged,
+__global__ void flagger_time(float * values, float * global_flags, unsigned int * nr_flagged,
     unsigned int number_of_samples) {
     extern __shared__ float shared[];
-    LocalFlagsfloat * local_flags = (LocalFlagsfloat *) &(shared[number_of_samples]);
+    float * local_flags = (float *) &(shared[number_of_samples]);
     unsigned int tid = threadIdx.x;
     float median;
     float stddev;
