@@ -6,7 +6,7 @@
 #define SIR_VALUE 0.4f
 
 // Swap utility function
-__global__ void swap(float * data, unsigned int x, unsigned int y) {
+__device__ inline void swap(float * data, unsigned int x, unsigned int y) {
     float temp = data[x];
     data[x] = data[y];
     data[y] = temp;
