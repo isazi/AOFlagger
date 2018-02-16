@@ -14,7 +14,7 @@ def test_swap():
     parameters = {}
     kernel_tuner.run_kernel("swap", kernel_source, input_size, arguments, parameters)
     if abs(array_host[0] - array_device[8191]) > 1.0e-06:
-        print("Error: " + array_host[0] + " != " + array_device[8191])
+        print("Error: " + str(array_host[0]) + " != " + str(array_device[8191]))
         return -1
 
 
