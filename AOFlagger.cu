@@ -9,10 +9,10 @@
 
 // Swap utility function
 template<typename Type>
-__device__ inline void swap(Type & a, Type & b) {
-    Type temp = a;
-    a = b;
-    b = temp;
+__global__ inline void swap(Type * array, unsigned int x, unsigned int y) {
+    Type temp = array[x];
+    array[x] = array[y];
+    array[y] = temp;
 }
 
 // Sort an array in place
