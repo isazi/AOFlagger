@@ -1,4 +1,3 @@
-
 import kernel_tuner
 import numpy
 
@@ -27,7 +26,7 @@ def swap():
     arguments_control = [data_control, None, None]
     parameters = {}
     kernel_tuner.tune_kernel("swap", kernel_source, input_size, arguments_device, parameters, answer=arguments_control,
-                            verify=test_swap, quiet=True)
+                             verify=test_swap, quiet=True)
 
 
 #
