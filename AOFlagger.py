@@ -24,9 +24,9 @@ def swap():
     swap_control(data_control, 0, 8191)
     arguments_device = [data_device, numpy.uint32(0), numpy.uint32(8191)]
     arguments_control = [data_control, None, None]
-    parameters = {}
-    kernel_tuner.tune_kernel("swap", kernel_source, input_size, arguments_device, parameters, answer=arguments_control,
-                             verify=test_swap, quiet=True)
+    tuning_parameters = {"block_size_x" : {1024}}
+    kernel_tuner.tune_kernel("swap", kernel_source, input_size, arguments_device, tuning_parameters,
+                             answer=arguments_control, verify=test_swap, quiet=True)
 
 
 #
