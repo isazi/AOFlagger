@@ -2,14 +2,11 @@
 import kernel_tuner
 import numpy
 
-FILENAME = "AOFlagger.cu"
-
-with open(FILENAME) as file:
-    kernel_source = file.read()
-
 
 # Test swap()
 def test_swap():
+    with open("swap.cu") as file:
+        kernel_source = file.read()
     input_size = 8192
     array_device = numpy.random.randn(input_size).astype(numpy.float32)
     # array_host = array_device
