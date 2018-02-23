@@ -46,11 +46,19 @@ class Statistics:
         float mean_<%ITEM_NUMBER%> = 0;
         float variance_<%ITEM_NUMBER%> = 0;
     """
-    LOCAL_COMPUTE = """value = input_data[value_id + <%ITEM_OFFSET%>];
+    LOCAL_COMPUTE_NOCHECK = """value = input_data[value_id + <%ITEM_OFFSET%>];
             counter_<%ITEM_NUMBER%> += 1;
             temp = value - mean_<%ITEM_NUMBER%>;
             mean_<%ITEM_NUMBER%> += temp / counter_<%ITEM_NUMBER%>;
             variance_<%ITEM_NUMBER%> += temp * (value - mean_<%ITEM_NUMBER%>);
+    """
+    LOCAL_COMPUTE_CHECK = """if ( value_id + <%ITEM_OFFSET%> < <%INPUT_SIZE%> ) {
+                value = input_data[value_id + <%ITEM_OFFSET%>];
+                counter_<%ITEM_NUMBER%> += 1;
+                temp = value - mean_<%ITEM_NUMBER%>;
+                mean_<%ITEM_NUMBER%> += temp / counter_<%ITEM_NUMBER%>;
+                variance_<%ITEM_NUMBER%> += temp * (value - mean_<%ITEM_NUMBER%>);
+            }
     """
     THREAD_REDUCE = """temp = mean_<%ITEM_NUMBER%> - mean_0;
         mean_0 = ((counter_0 * mean_0) + (counter_<%ITEM_NUMBER%> * mean_<%ITEM_NUMBER%>)) 
@@ -75,7 +83,12 @@ class Statistics:
         local_compute = str()
         for item in range(0, int(configuration["items_per_thread"])):
             local_variables = local_variables + Statistics.LOCAL_VARIABLES.replace("<%ITEM_NUMBER%>", str(item))
-            local_compute = local_compute + Statistics.LOCAL_COMPUTE.replace("<%ITEM_NUMBER%>", str(item))
+            if self.input_size % \
+                    (int(configuration["thread_blocks"]) * int(configuration["threads_per_block"])
+                     * int(configuration["items_per_thread"])) == 0:
+                local_compute = local_compute + Statistics.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
+            else:
+                local_compute = local_compute + Statistics.LOCAL_COMPUTE_NOCHECK.replace("<%ITEM_NUMBER%>", str(item))
             if item == 0:
                 local_compute = local_compute.replace(" + <%ITEM_OFFSET%>", "")
             else:
