@@ -21,10 +21,24 @@ def tune_statistics():
     data = numpy.random.randn(input_size).astype(numpy.float32)
     statistics = numpy.zeros(max(tuning_parameters["thread_blocks"]) * 3).astype(numpy.float32)
     kernel_arguments = [data, statistics]
+    # Control data
+    control_arguments = [None, [input_size, data.mean(), data.var()]]
+    def verify(control_data, data, atol=None):
+        counter = 0.0
+        mean = 0.0
+        variance = 0.0
+        for item in range(0, max(tuning_parameters["thread_blocks"]) * 3, 3):
+            temp = data[item + 1] - mean
+            mean = ((counter * mean) + (data[item] * data[item + 1])) / (counter + data[item])
+            variance = variance + data[item + 2] + ((temp * temp) * ((counter * data[item]) / (counter + data[item])))
+            counter = counter + data[item]
+        return numpy.allclose(control_data, [counter, mean, variance], atol)
+
     try:
         results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
                                            kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints,
-                                           grid_div_x=[], block_size_names=block_size_names, iterations=3)
+                                           grid_div_x=[], block_size_names=block_size_names, iterations=3,
+                                           answer=control_arguments, verify=verify)
     except Exception as error:
         print(error)
 
