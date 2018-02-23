@@ -50,7 +50,7 @@ class Statistics:
             counter_<%ITEM_NUMBER%> += 1;
             temp = value - mean_<%ITEM_NUMBER%>;
             mean_<%ITEM_NUMBER%> += temp / counter_<%ITEM_NUMBER%>;
-            variance_<%ITEM_NUMBER%> += temp * (value - mean<%ITEM_NUMBER%>);
+            variance_<%ITEM_NUMBER%> += temp * (value - mean_<%ITEM_NUMBER%>);
     """
     THREAD_REDUCE = """temp = mean_<%ITEM_NUMBER%> - mean_0;
         mean_0 = ((counter_0 * mean_0) + (counter_<%ITEM_NUMBER%> * mean_<%ITEM_NUMBER%>)) 
