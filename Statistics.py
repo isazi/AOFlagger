@@ -67,7 +67,7 @@ class Statistics:
     def generate_cuda(self, configuration):
         code = Statistics.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["threads_per_block"]))
-        code = code.replace("<%ITEMS_PER_BLOCK%>", str(self.input_size / int(configuration["thread_blocks"])))
+        code = code.replace("<%ITEMS_PER_BLOCK%>", str(int(self.input_size / int(configuration["thread_blocks"]))))
         code = code.replace("<%ITEMS_PER_ITERATION%>", str(int(configuration["threads_per_block"])
                             * int(configuration["items_per_thread"])))
         code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(configuration["threads_per_block"]) / 2))
@@ -76,7 +76,8 @@ class Statistics:
         for item in range(0, int(configuration["items_per_thread"])):
             local_variables = local_variables + Statistics.LOCAL_VARIABLES.replace("<%ITEM_NUMBER%>", str(item))
             local_compute = local_compute + Statistics.LOCAL_COMPUTE.replace("<%ITEM_NUMBER%>", str(item))
-            local_compute = local_compute.replace("<%ITEM_OFFSET%>",str(item * int(configuration["threads_per_block"])))
+            local_compute = local_compute.replace("<%ITEM_OFFSET%>",
+                                                  str(item * int(configuration["threads_per_block"])))
         code = code.replace("<%LOCAL_VARIABLES%>", local_variables)
         code = code.replace("<%LOCAL_COMPUTE%>", local_compute)
         if int(configuration["items_per_thread"]) > 1:
