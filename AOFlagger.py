@@ -21,7 +21,9 @@ def tune_statistics():
     kernel_arguments = [data, statistics]
     # Control data
     control_arguments = [None, numpy.asarray([input_size, data.mean(), data.var()])]
-    def verify(control_data, data, atol=None):
+
+    # Control function
+    def verify(control_data, data, atol=1.0e-06):
         counter = 0.0
         mean = 0.0
         variance = 0.0
