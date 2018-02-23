@@ -11,7 +11,7 @@ class Statistics:
         __shared__ float reduction_variance[<%THREADS_PER_BLOCK%>];
         
         for ( unsigned int value_id = (blockIdx.x * <%ITEMS_PER_BLOCK%>) + threadIdx.x; 
-                value_id <= (blockIdx.x * <%ITEMS_PER_BLOCK%>) + threadIdx.x + <%ITEMS_PER_BLOCK%>; 
+                value_id < ((blockIdx.x + 1) * <%ITEMS_PER_BLOCK%>); 
                 value_id += <%ITEMS_PER_ITERATION%> ) {
             <%TYPE%> value;
             
