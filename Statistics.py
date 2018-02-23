@@ -76,8 +76,11 @@ class Statistics:
         for item in range(0, int(configuration["items_per_thread"])):
             local_variables = local_variables + Statistics.LOCAL_VARIABLES.replace("<%ITEM_NUMBER%>", str(item))
             local_compute = local_compute + Statistics.LOCAL_COMPUTE.replace("<%ITEM_NUMBER%>", str(item))
-            local_compute = local_compute.replace("<%ITEM_OFFSET%>",
-                                                  str(item * int(configuration["threads_per_block"])))
+            if item == 0:
+                local_compute = local_compute.replace(" + <%ITEM_OFFSET%>", "")
+            else:
+                local_compute = local_compute.replace("<%ITEM_OFFSET%>",
+                                                      str(item * int(configuration["threads_per_block"])))
         code = code.replace("<%LOCAL_VARIABLES%>", local_variables)
         code = code.replace("<%LOCAL_COMPUTE%>", local_compute)
         if int(configuration["items_per_thread"]) > 1:
