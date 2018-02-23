@@ -1,5 +1,7 @@
 
 class Statistics:
+    input_size = int()
+
     CUDA_TEMPLATE = """__global__ void compute_statistics_1D(const <%TYPE%> * const input_data, 
             float * const statistics) {
         <%LOCAL_VARIABLES%>
@@ -58,12 +60,14 @@ class Statistics:
         counter_0 += counter_<%ITEM_NUMBER%>;
     """
 
+    def __init__(self, size):
+        input_size = size
+
     # Generate CUDA code
-    @staticmethod
-    def generate_cuda(configuration):
+    def generate_cuda(self, configuration):
         code = Statistics.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", configuration["threads_per_block"])
-        code = code.replace("<%ITEMS_PER_BLOCK%>", configuration["items_per_block"])
+        code = code.replace("<%ITEMS_PER_BLOCK%>", str(self.input_size / int(configuration["thread_blocks"])))
         code = code.replace("<%ITEMS_PER_ITERATION%>", str(int(configuration["threads_per_block"])
                             * int(configuration["items_per_thread"])))
         code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(configuration["threads_per_block"]) / 2))
@@ -85,7 +89,6 @@ class Statistics:
         return code
 
     # Generate OpenCL code
-    @staticmethod
-    def generate_opencl(configuration):
+    def generate_opencl(self, configuration):
         code = str()
         return code
