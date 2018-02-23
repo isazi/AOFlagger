@@ -7,7 +7,7 @@ def tune_statistics():
     input_size = 25000
 
     data = numpy.random.randn(input_size).astype(numpy.float32)
-    statistics = numpy.zeros()
+    statistics = numpy.zeros(input_size)
     kernel_arguments = [data, statistics]
 
     tuning_parameters = dict()
