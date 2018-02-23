@@ -47,10 +47,10 @@ class Statistics:
         float variance_<%ITEM_NUMBER%> = 0;
     """
     LOCAL_COMPUTE = """value = input_data[value_id + <%ITEM_OFFSET%>];
-        counter_<%ITEM_NUMBER%> += 1;
-        temp = value - mean_<%ITEM_NUMBER%>;
-        mean_<%ITEM_NUMBER%> += temp / counter_<%ITEM_NUMBER%>;
-        variance_<%ITEM_NUMBER%> += temp * (value - mean<%ITEM_NUMBER%>);
+            counter_<%ITEM_NUMBER%> += 1;
+            temp = value - mean_<%ITEM_NUMBER%>;
+            mean_<%ITEM_NUMBER%> += temp / counter_<%ITEM_NUMBER%>;
+            variance_<%ITEM_NUMBER%> += temp * (value - mean<%ITEM_NUMBER%>);
     """
     THREAD_REDUCE = """temp = mean_<%ITEM_NUMBER%> - mean_0;
         mean_0 = ((counter_0 * mean_0) + (counter_<%ITEM_NUMBER%> * mean_<%ITEM_NUMBER%>)) 
@@ -61,7 +61,7 @@ class Statistics:
     """
 
     def __init__(self, size):
-        input_size = size
+        self.input_size = size
 
     # Generate CUDA code
     def generate_cuda(self, configuration):
