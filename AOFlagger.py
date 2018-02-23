@@ -22,7 +22,7 @@ def tune_statistics():
     try:
         results = kernel_tuner.tune_kernel("compute_statistics_1D", Statistics.Statistics.generate_cuda, input_size,
                                            kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints,
-                                           block_size_names=block_size_names)
+                                           block_size_names=block_size_names, iterations=3)
     except Exception as error:
         print(error)
 
