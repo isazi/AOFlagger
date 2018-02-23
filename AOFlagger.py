@@ -1,37 +1,27 @@
 import kernel_tuner
 import numpy
 
+import Statistics
 
-#
-# Test swap()
-#
-def swap_control(data, x, y):
-    temp = data[x]
-    data[x] = data[y]
-    data[y] = temp
+def tune_statistics():
+    input_size = 25000
 
+    data = numpy.random.randn(input_size).astype(numpy.float32)
+    statistics = numpy.zeros()
+    kernel_arguments = [data, statistics]
 
-def test_swap(data_control, data_device):
-    return numpy.allclose(data_control, data_device, atol=1.0e-06)
+    tuning_parameters = dict()
+    tuning_parameters["type"] = "float"
+    tuning_parameters["threads_per_block"] = [threads for threads in range(32, 1024 + 1, 32)]
+    tuning_parameters["items_per_thread"] = [items for items in range(1, 256, 1)]
+    tuning_parameters["items_per_block"] = [items for items in range(1, input_size + 1)]
+    constraints = ["(" + str(input_size) + " % items_per_block) == 0",
+                   "(items_per_block % (threads_per_block * items_per_thread)) == 0"]
+    try:
+        results = kernel_tuner.tune_kernel("compute_statistics_1D", Statistics.Statistics.generate_cuda, input_size,
+                                           kernel_arguments, tuning_parameters, restrictions=constraints)
+    except Exception as error:
+        print(error)
 
-
-def swap():
-    with open("swap.cu") as file:
-        kernel_source = file.read()
-    input_size = 8192
-    data_device = numpy.random.randn(input_size).astype(numpy.float32)
-    data_control = data_device
-    swap_control(data_control, 0, input_size - 1)
-    arguments_device = [data_device, numpy.uint32(0), numpy.uint32(input_size - 1)]
-    arguments_control = [data_control, None, None]
-    tuning_parameters = {"block_size_x" : {1024}}
-    kernel_tuner.tune_kernel("swap", kernel_source, input_size, arguments_device, tuning_parameters,
-                             answer=arguments_control, verify=test_swap, quiet=True)
-
-
-#
-# Run the tests
-#
 if __name__ == "__main__":
-    print("Testing function: swap()")
-    swap()
+    tune_statistics()
