@@ -22,7 +22,7 @@ def tune_statistics():
     statistics = numpy.zeros(max(tuning_parameters["thread_blocks"]) * 3).astype(numpy.float32)
     kernel_arguments = [data, statistics]
     try:
-        results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, input_size,
+        results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
                                            kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints,
                                            grid_div_x=[], block_size_names=block_size_names, iterations=3)
     except Exception as error:
