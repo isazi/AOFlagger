@@ -10,7 +10,7 @@ def tune_statistics():
     # Kernel
     kernel = Statistics.Statistics(input_size)
     tuning_parameters = dict()
-    tuning_parameters["type"] = "float"
+    tuning_parameters["type"] = ["float"]
     tuning_parameters["threads_per_block"] = [threads for threads in range(32, 1024 + 1, 32)]
     tuning_parameters["other_dims"] = [1]
     tuning_parameters["items_per_thread"] = [items for items in range(1, 256, 1)]
