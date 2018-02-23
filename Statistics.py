@@ -89,6 +89,7 @@ class Statistics:
                 local_compute = local_compute + Statistics.LOCAL_COMPUTE_NOCHECK.replace("<%ITEM_NUMBER%>", str(item))
             else:
                 local_compute = local_compute + Statistics.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
+                local_compute = local_compute.replace("<%INPUT_SIZE%>", str(self.input_size))
             if item == 0:
                 local_compute = local_compute.replace(" + <%ITEM_OFFSET%>", "")
             else:
