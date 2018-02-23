@@ -66,7 +66,7 @@ class Statistics:
     # Generate CUDA code
     def generate_cuda(self, configuration):
         code = Statistics.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
-        code = code.replace("<%THREADS_PER_BLOCK%>", configuration["threads_per_block"])
+        code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["threads_per_block"]))
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(self.input_size / int(configuration["thread_blocks"])))
         code = code.replace("<%ITEMS_PER_ITERATION%>", str(int(configuration["threads_per_block"])
                             * int(configuration["items_per_thread"])))
