@@ -70,7 +70,7 @@ class Statistics:
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(int(self.input_size / int(configuration["thread_blocks"]))))
         code = code.replace("<%ITEMS_PER_ITERATION%>", str(int(configuration["threads_per_block"])
                             * int(configuration["items_per_thread"])))
-        code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(configuration["threads_per_block"]) / 2))
+        code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(int(configuration["threads_per_block"]) / 2)))
         local_variables = str()
         local_compute = str()
         for item in range(0, int(configuration["items_per_thread"])):
