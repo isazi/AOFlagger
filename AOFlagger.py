@@ -15,7 +15,7 @@ def tune_statistics():
     tuning_parameters["other_dims"] = [1]
     tuning_parameters["items_per_thread"] = [2**x for x in range(0, 8)]
     tuning_parameters["thread_blocks"] = [2**x for x in range(0, 17)]
-    constraints = []
+    constraints = ["(thread_blocks * threads_per_block * items_per_thread) <= " + str(input_size)]
     block_size_names = ["threads_per_block", "other_dims", "other_dims"]
     # Data
     data = numpy.random.randn(input_size).astype(numpy.float32)
