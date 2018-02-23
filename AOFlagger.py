@@ -12,11 +12,11 @@ def tune_statistics():
     tuning_parameters = dict()
     tuning_parameters["type"] = "float"
     tuning_parameters["threads_per_block"] = [threads for threads in range(32, 1024 + 1, 32)]
-    tuning_parameters["threads_per_block_other_dim"] = [1]
+    tuning_parameters["other_dims"] = [1]
     tuning_parameters["items_per_thread"] = [items for items in range(1, 256, 1)]
     tuning_parameters["thread_blocks"] = [2**x for x in range(0, 16)]
     constraints = []
-    block_size_names = ["threads_per_block", "threads_per_block_other_dim", "threads_per_block_other_dim"]
+    block_size_names = ["threads_per_block", "other_dims", "other_dims"]
     # Data
     data = numpy.random.randn(input_size).astype(numpy.float32)
     statistics = numpy.zeros(max(tuning_parameters["thread_blocks"]) * 3).astype(numpy.float32)
