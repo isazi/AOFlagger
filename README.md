@@ -6,6 +6,14 @@ In this repository I am toying around with some a real-time many-core implementa
 
 ## Sequential Code Analysis
 
+### Data
+
+The input is a time series.
+Data could be one or two dimensional, in the scenario that we are currently investigating.
+The output is a flagging mask that, when applied to the data, cancels the RFI out.
+
+### Statistics
+
 The most important building block of the flagger are the statistics.
 The statistics used in the code are:
 - **Mean**
@@ -16,8 +24,6 @@ The statistics used in the code are:
 Plus the *winsorized* version of mean and median.
 Winsorized version of mean and median are still mean and median, but computed only on the middle part of the data.
 In the original source code, the middle 80% of data is used, i.e. top and bottom 10% of values are excluded from the computation.
-Of all the statistics, the most expensive to compute is the median; this is, assuming the input data are not already ordered.
 
-The input is a time series.
-Data could be one or two dimensional, in the scenario that we are currently investigating.
-The output is a flagging mask that, when applied to the data, cancels the RFI out.
+Of all the statistics, the most expensive to compute is the median; this is, assuming the input data are not already ordered.
+Computing mean and standard deviation can be done in O(n) on the input data, without sorting; it is also possible to easily parallelize the computation of mean and standard deviation.
