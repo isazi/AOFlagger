@@ -86,9 +86,9 @@ class Statistics:
             if self.input_size % \
                     (int(configuration["thread_blocks"]) * int(configuration["threads_per_block"])
                      * int(configuration["items_per_thread"])) == 0:
-                local_compute = local_compute + Statistics.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
-            else:
                 local_compute = local_compute + Statistics.LOCAL_COMPUTE_NOCHECK.replace("<%ITEM_NUMBER%>", str(item))
+            else:
+                local_compute = local_compute + Statistics.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
             if item == 0:
                 local_compute = local_compute.replace(" + <%ITEM_OFFSET%>", "")
             else:
