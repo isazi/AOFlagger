@@ -19,7 +19,7 @@ def tune_statistics():
                    "(items_per_block % (threads_per_block * items_per_thread)) == 0"]
     try:
         results = kernel_tuner.tune_kernel("compute_statistics_1D", Statistics.Statistics.generate_cuda, input_size,
-                                           kernel_arguments, tuning_parameters, restrictions=constraints)
+                                           kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints)
     except Exception as error:
         print(error)
 
