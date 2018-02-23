@@ -33,6 +33,9 @@ class Statistics:
                     * ((counter_0 * reduction_counter[value_id + threshold]) 
                     / (counter_0 + reduction_counter[value_id + threshold])));
                 counter_0 += reduction_counter[value_id + threshold];
+                reduction_mean[threadIdx.x] = mean_0;
+                reduction_variance[threadIdx.x] = variance_0;
+                reduction_counter[threadIdx.x] = counter_0;
             }
             __syncthreads();
         }
