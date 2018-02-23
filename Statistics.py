@@ -1,4 +1,6 @@
 
+import math
+
 class Statistics:
     input_size = int()
 
@@ -78,7 +80,8 @@ class Statistics:
     def generate_cuda(self, configuration):
         code = Statistics.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
-        code = code.replace("<%ITEMS_PER_BLOCK%>", str(int(self.input_size / int(configuration["thread_blocks"]))))
+        code = code.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
+                                                                 / int(configuration["thread_blocks"]))))
         code = code.replace("<%ITEMS_PER_ITERATION%>", str(int(configuration["block_size_x"])
                             * int(configuration["items_per_thread"])))
         code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(int(configuration["block_size_x"]) / 2)))
