@@ -11,12 +11,10 @@ def tune_statistics():
     kernel = Statistics.Statistics(input_size)
     tuning_parameters = dict()
     tuning_parameters["type"] = ["float"]
-    tuning_parameters["threads_per_block"] = [threads for threads in range(32, 1024 + 1, 32)]
-    tuning_parameters["other_dims"] = [1]
+    tuning_parameters["block_size_x"] = [threads for threads in range(32, 1024 + 1, 32)]
     tuning_parameters["items_per_thread"] = [2**x for x in range(0, 8)]
     tuning_parameters["thread_blocks"] = [2**x for x in range(0, 17)]
-    constraints = ["(thread_blocks * threads_per_block * items_per_thread) <= " + str(input_size)]
-    block_size_names = ["threads_per_block", "other_dims", "other_dims"]
+    constraints = ["(thread_blocks * block_size_x * items_per_thread) <= " + str(input_size)]
     # Data
     data = numpy.random.randn(input_size).astype(numpy.float32)
     statistics = numpy.zeros(max(tuning_parameters["thread_blocks"]) * 3).astype(numpy.float32)
@@ -37,8 +35,7 @@ def tune_statistics():
     try:
         results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
                                            kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints,
-                                           grid_div_x=[], block_size_names=block_size_names, iterations=3,
-                                           answer=control_arguments, verify=verify)
+                                           grid_div_x=[], iterations=3, answer=control_arguments, verify=verify)
     except Exception as error:
         print(error)
 
