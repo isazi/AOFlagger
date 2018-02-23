@@ -22,7 +22,7 @@ def tune_statistics():
     statistics = numpy.zeros(max(tuning_parameters["thread_blocks"]) * 3).astype(numpy.float32)
     kernel_arguments = [data, statistics]
     # Control data
-    control_arguments = [None, [input_size, data.mean(), data.var()]]
+    control_arguments = [None, numpy.asarray([input_size, data.mean(), data.var()])]
     def verify(control_data, data, atol=None):
         counter = 0.0
         mean = 0.0
