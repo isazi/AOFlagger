@@ -23,7 +23,7 @@ def tune_statistics():
     control_arguments = [None, numpy.asarray([input_size, data.mean(), data.var()])]
 
     # Control function
-    def verify(control_data, data, atol=1.0e-06):
+    def verify(control_data, data, atol=None):
         counter = 0.0
         mean = 0.0
         variance = 0.0
@@ -32,12 +32,14 @@ def tune_statistics():
             mean = ((counter * mean) + (data[item] * data[item + 1])) / (counter + data[item])
             variance = variance + data[item + 2] + ((temp * temp) * ((counter * data[item]) / (counter + data[item])))
             counter = counter + data[item]
+        variance = variance / (counter - 1)
         return numpy.allclose(control_data, [counter, mean, variance], atol)
 
     try:
         results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
                                            kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints,
-                                           grid_div_x=[], iterations=3, answer=control_arguments, verify=verify)
+                                           grid_div_x=[], iterations=3, answer=control_arguments, verify=verify,
+                                           atol=1.0e-03)
     except Exception as error:
         print(error)
 
