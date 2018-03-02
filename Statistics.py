@@ -132,4 +132,9 @@ class Statistics1D:
             variance = variance + data[item + 2] + ((temp * temp) * ((counter * data[item]) / (counter + data[item])))
             counter = counter + data[item]
         variance = variance / (counter - 1)
-        return numpy.allclose(control_data, [counter, mean, variance], atol)
+        result = numpy.allclose(control_data, [counter, mean, variance], atol)
+        if result == False:
+            print(control_data)
+            print(data)
+            print([counter, mean, variance])
+        return result
