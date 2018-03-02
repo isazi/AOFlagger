@@ -1,8 +1,9 @@
 
 import math
+import numpy
 
 
-class Statistics:
+class Statistics1D:
     input_size = int()
 
     CUDA_TEMPLATE = """__global__ void compute_statistics_1D(const <%TYPE%> * const input_data, 
@@ -79,7 +80,7 @@ class Statistics:
 
     # Generate CUDA code
     def generate_cuda(self, configuration):
-        code = Statistics.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
+        code = Statistics1D.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
                                                                  / int(configuration["thread_blocks"]))))
@@ -89,13 +90,13 @@ class Statistics:
         local_variables = str()
         local_compute = str()
         for item in range(0, int(configuration["items_per_thread"])):
-            local_variables = local_variables + Statistics.LOCAL_VARIABLES.replace("<%ITEM_NUMBER%>", str(item))
+            local_variables = local_variables + Statistics1D.LOCAL_VARIABLES.replace("<%ITEM_NUMBER%>", str(item))
             if self.input_size % \
                     (int(configuration["thread_blocks"]) * int(configuration["block_size_x"])
                      * int(configuration["items_per_thread"])) == 0:
-                local_compute = local_compute + Statistics.LOCAL_COMPUTE_NOCHECK.replace("<%ITEM_NUMBER%>", str(item))
+                local_compute = local_compute + Statistics1D.LOCAL_COMPUTE_NOCHECK.replace("<%ITEM_NUMBER%>", str(item))
             else:
-                local_compute = local_compute + Statistics.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
+                local_compute = local_compute + Statistics1D.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
                 local_compute = local_compute.replace("<%INPUT_SIZE%>", str(self.input_size))
             if item == 0:
                 local_compute = local_compute.replace(" + <%ITEM_OFFSET%>", "")
@@ -107,7 +108,7 @@ class Statistics:
         if int(configuration["items_per_thread"]) > 1:
             thread_reduce = str()
             for item in range(1, int(configuration["items_per_thread"])):
-                thread_reduce = thread_reduce + Statistics.THREAD_REDUCE.replace("<%ITEM_NUMBER%>", str(item))
+                thread_reduce = thread_reduce + Statistics1D.THREAD_REDUCE.replace("<%ITEM_NUMBER%>", str(item))
             code = code.replace("<%THREAD_REDUCE%>", thread_reduce)
         else:
             code = code.replace("<%THREAD_REDUCE%>", "")
@@ -117,3 +118,15 @@ class Statistics:
     def generate_opencl(self, configuration):
         code = str()
         return code
+
+    def verify(self, control_data, data, atol=None):
+        counter = 0.0
+        mean = 0.0
+        variance = 0.0
+        for item in range(0, len(control_data), 3):
+            temp = data[item + 1] - mean
+            mean = ((counter * mean) + (data[item] * data[item + 1])) / (counter + data[item])
+            variance = variance + data[item + 2] + ((temp * temp) * ((counter * data[item]) / (counter + data[item])))
+            counter = counter + data[item]
+        variance = variance / (counter - 1)
+        return numpy.allclose(control_data, [counter, mean, variance], atol)
