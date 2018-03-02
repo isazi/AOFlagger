@@ -60,7 +60,8 @@ class Statistics1D:
             mean_<%ITEM_NUMBER%> += temp / counter_<%ITEM_NUMBER%>;
             variance_<%ITEM_NUMBER%> += temp * (value - mean_<%ITEM_NUMBER%>);
     """
-    LOCAL_COMPUTE_CHECK = """if ( value_id + <%ITEM_OFFSET%> < <%INPUT_SIZE%> ) {
+    LOCAL_COMPUTE_CHECK = """if ( (value_id + <%ITEM_OFFSET%> < <%INPUT_SIZE%>)
+                && (value_id + <%ITEM_OFFSET%> < ((blockIdx.x + 1) * <%ITEMS_PER_BLOCK%>)) ) {
                 value = input_data[value_id + <%ITEM_OFFSET%>];
                 counter_<%ITEM_NUMBER%> += 1;
                 temp = value - mean_<%ITEM_NUMBER%>;
@@ -99,6 +100,8 @@ class Statistics1D:
                 local_compute = local_compute + Statistics1D.LOCAL_COMPUTE_NOCHECK.replace("<%ITEM_NUMBER%>", str(item))
             else:
                 local_compute = local_compute + Statistics1D.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
+                local_compute = local_compute.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
+                                                                 / int(configuration["thread_blocks"]))))
                 local_compute = local_compute.replace("<%INPUT_SIZE%>", str(self.input_size))
             if item == 0:
                 local_compute = local_compute.replace(" + <%ITEM_OFFSET%>", "")
