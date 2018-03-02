@@ -4,7 +4,7 @@ import numpy
 import Statistics
 
 
-def tune_statistics():
+def tune_statistics_1D():
     input_size = 25000
 
     # Kernel
@@ -34,4 +34,4 @@ def tune_statistics():
 
 
 if __name__ == "__main__":
-    tune_statistics()
+    tune_statistics_1D()
