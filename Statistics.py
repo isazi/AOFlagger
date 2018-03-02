@@ -133,7 +133,7 @@ class Statistics1D:
             counter = counter + data[item]
         variance = variance / (counter - 1)
         result = numpy.allclose(control_data, [counter, mean, variance], atol)
-        if result == False:
+        if result is False:
             numpy.set_printoptions(threshold=numpy.nan)
             print(control_data)
             print(data)
