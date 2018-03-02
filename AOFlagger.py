@@ -25,8 +25,8 @@ def tune_statistics():
     try:
         results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
                                            kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints,
-                                           grid_div_x=[], iterations=3, answer=control_arguments,
-                                           verify=Statistics.Statistics1D.verify, atol=1.0e-03)
+                                           grid_div_x=[], iterations=3, answer=control_arguments, verify=kernel.verify,
+                                           atol=1.0e-03)
     except Exception as error:
         print(error)
 
