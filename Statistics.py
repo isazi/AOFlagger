@@ -1,6 +1,7 @@
 
 import math
 
+
 class Statistics:
     input_size = int()
 
