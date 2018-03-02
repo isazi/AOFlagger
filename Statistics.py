@@ -134,8 +134,8 @@ class Statistics1D:
         variance = variance / (counter - 1)
         result = numpy.allclose(control_data, [counter, mean, variance], atol)
         if result is False:
-            numpy.set_printoptions(threshold=numpy.nan)
+            numpy.set_printoptions(precision=6, suppress=True)
             print(control_data)
-            print(data)
+            print(data[0:(self.configuration["thread_blocks"] * 3)])
             print([counter, mean, variance])
         return result
