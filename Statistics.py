@@ -5,6 +5,7 @@ import numpy
 
 class Statistics1D:
     input_size = int()
+    configuration = dict()
 
     CUDA_TEMPLATE = """__global__ void compute_statistics_1D(const <%TYPE%> * const input_data, 
             float * const statistics) {
@@ -80,6 +81,7 @@ class Statistics1D:
 
     # Generate CUDA code
     def generate_cuda(self, configuration):
+        self.configuration = configuration
         code = Statistics1D.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
@@ -116,6 +118,7 @@ class Statistics1D:
 
     # Generate OpenCL code
     def generate_opencl(self, configuration):
+        self.configuration = configuration
         code = str()
         return code
 
@@ -123,7 +126,7 @@ class Statistics1D:
         counter = 0.0
         mean = 0.0
         variance = 0.0
-        for item in range(0, len(control_data), 3):
+        for item in range(0, self.configuration["thread_blocks"] * 3, 3):
             temp = data[item + 1] - mean
             mean = ((counter * mean) + (data[item] * data[item + 1])) / (counter + data[item])
             variance = variance + data[item + 2] + ((temp * temp) * ((counter * data[item]) / (counter + data[item])))
