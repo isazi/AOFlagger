@@ -11,7 +11,7 @@ def tune_statistics():
     kernel = Statistics.Statistics(input_size)
     tuning_parameters = dict()
     tuning_parameters["type"] = ["float"]
-    tuning_parameters["block_size_x"] = [threads for threads in range(32, 1024 + 1, 32)]
+    tuning_parameters["block_size_x"] = [2**x for x in range(5, 11)]
     tuning_parameters["items_per_thread"] = [2**x for x in range(0, 8)]
     tuning_parameters["thread_blocks"] = [2**x for x in range(0, 17)]
     constraints = ["(thread_blocks * block_size_x * items_per_thread) <= " + str(input_size)]
