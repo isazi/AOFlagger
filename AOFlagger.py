@@ -16,8 +16,7 @@ def tune_statistics_1D():
     tuning_parameters["thread_blocks"] = [2**x for x in range(0, 17)]
     constraints = ["(thread_blocks * block_size_x * items_per_thread) <= " + str(input_size),
                    "(" + str(input_size) + "- math.ceil(" + str(input_size)
-                   + " / thread_blocks) * (thread_blocks - 1)) >= int(block_size_x / 2)",
-                   "(math.ceil(" + str(input_size) + " / thread_blocks) % items_per_thread) == 0"]
+                   + " / thread_blocks) * (thread_blocks - 1)) >= int(block_size_x / 2)"]
     # Data
     data = numpy.random.randn(input_size).astype(numpy.float32)
     statistics = numpy.zeros(max(tuning_parameters["thread_blocks"]) * 3).astype(numpy.float32)
