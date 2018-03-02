@@ -8,7 +8,7 @@ def tune_statistics():
     input_size = 25000
 
     # Kernel
-    kernel = Statistics.Statistics(input_size)
+    kernel = Statistics.Statistics1D(input_size)
     tuning_parameters = dict()
     tuning_parameters["type"] = ["float"]
     tuning_parameters["block_size_x"] = [2**x for x in range(5, 11)]
@@ -22,24 +22,11 @@ def tune_statistics():
     # Control data
     control_arguments = [None, numpy.asarray([input_size, data.mean(), data.var()])]
 
-    # Control function
-    def verify(control_data, data, atol=None):
-        counter = 0.0
-        mean = 0.0
-        variance = 0.0
-        for item in range(0, max(tuning_parameters["thread_blocks"]) * 3, 3):
-            temp = data[item + 1] - mean
-            mean = ((counter * mean) + (data[item] * data[item + 1])) / (counter + data[item])
-            variance = variance + data[item + 2] + ((temp * temp) * ((counter * data[item]) / (counter + data[item])))
-            counter = counter + data[item]
-        variance = variance / (counter - 1)
-        return numpy.allclose(control_data, [counter, mean, variance], atol)
-
     try:
         results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
                                            kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints,
-                                           grid_div_x=[], iterations=3, answer=control_arguments, verify=verify,
-                                           atol=1.0e-03)
+                                           grid_div_x=[], iterations=3, answer=control_arguments,
+                                           verify=Statistics.Statistics1D.verify, atol=1.0e-03)
     except Exception as error:
         print(error)
 
