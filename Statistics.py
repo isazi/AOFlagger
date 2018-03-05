@@ -203,18 +203,20 @@ class Statistics1D:
             print([counter, mean, variance])
         return result
 
-    def verify_second_step(self, control_data, data, atol=None):
+    def generate_control_data_second_step(self, data):
         counter = 0.0
         mean = 0.0
         variance = 0.0
         for item in range(0, self.input_size, 3):
-            temp = control_data[item + 1] - mean
-            mean = ((counter * mean) + (control_data[item] * control_data[item + 1])) / (counter + control_data[item])
-            variance = variance + control_data[item + 2] + ((temp * temp) * ((counter * control_data[item])
-                                                                             / (counter + control_data[item])))
-            counter = counter + control_data[item]
+            temp = data[item + 1] - mean
+            mean = ((counter * mean) + (data[item] * data[item + 1])) / (counter + data[item])
+            variance = variance + data[item + 2] + ((temp * temp) * ((counter * data[item]) / (counter + data[item])))
+            counter = counter + data[item]
         variance = variance / (counter - 1)
-        result = numpy.allclose([mean, math.sqrt(variance)], data, atol)
+        return [mean, math.sqrt(variance)]
+
+    def verify_second_step(self, control_data, data, atol=None):
+        result = numpy.allclose(control_data, data, atol)
         if result is False:
             numpy.set_printoptions(precision=6, suppress=True)
             print(control_data)
