@@ -38,11 +38,11 @@ def tune_statistics_1D(input_size, language):
     results_second = dict()
     for blocks in tuning_parameters_first["thread_blocks"]:
         kernel = Statistics.Statistics1D(blocks * 3)
-        triplets = numpy.random.random_integers(0, blocks, blocks * 3).astype(numpy.float32)
+        triplets = numpy.random.random_integers(1, blocks, blocks * 3).astype(numpy.float32)
         statistics = numpy.zeros(2).astype(numpy.float32)
         kernel_arguments = [triplets, statistics]
         constraints = ["block_size_x <= " + str(blocks)]
-        control_arguments = [None, kernel.generate_control_data_second_step(triplets)]
+        control_arguments = [None, numpy.asarray(kernel.generate_control_data_second_step(triplets))]
         try:
             if language == "CUDA":
                 results = kernel_tuner.tune_kernel("compute_statistics_1D_second_step",
