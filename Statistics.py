@@ -197,4 +197,9 @@ class Statistics1D:
         return result
 
     def verify_second_step(self, control_data, data, atol=None):
-        return numpy.allclose(control_data, data, atol)
+        result = numpy.allclose(control_data, data, atol)
+        if result is False:
+            numpy.set_printoptions(precision=6, suppress=True)
+            print(control_data)
+            print(data)
+        return result
