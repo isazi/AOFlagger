@@ -53,7 +53,10 @@ def tune_statistics_1D(input_size, language):
             print(error)
     # Tuning totals
     for first_kernel in results_first:
-        first_kernel["total"] = first_kernel["time"] + min(results_second[first_kernel["thread_blocks"]],
+        if first_kernel["thread_blocks"] == 1:
+            first_kernel["total"] = first_kernel["time"]
+        else:
+            first_kernel["total"] = first_kernel["time"] + min(results_second[first_kernel["thread_blocks"]],
                                                            key=lambda x:x["time"])
 
 
