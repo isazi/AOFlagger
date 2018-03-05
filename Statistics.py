@@ -5,7 +5,7 @@ import numpy
 
 class Statistics1D:
     input_size = int()
-    configuration = dict()
+    configuration_first = dict()
 
     CUDA_TEMPLATE_FIRST = """__global__ void compute_statistics_1D_first_step(const <%TYPE%> * const input_data, 
             float * const statistics) {
@@ -127,7 +127,7 @@ class Statistics1D:
 
     # Generate CUDA code for first step
     def generate_first_step_cuda(self, configuration):
-        self.configuration = configuration
+        self.configuration_first = configuration
         code = Statistics1D.CUDA_TEMPLATE_FIRST.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
@@ -167,21 +167,21 @@ class Statistics1D:
     # Generate CUDA code for second step
     def generate_second_step_cuda(self, configuration):
         code = Statistics1D.CUDA_TEMPLATE_SECOND.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
-        code = code.replace("<%ITEMS_PER_BLOCK%>", str(self.configuration["thread_blocks"]))
+        code = code.replace("<%ITEMS_PER_BLOCK%>", str(self.input_size))
         code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(int(configuration["block_size_x"]) / 2)))
         return code
 
     # Generate OpenCL code for first step
     def generate_first_step_opencl(self, configuration):
         # TODO: implement the method
-        self.configuration = configuration
+        self.configuration_first = configuration
         code = str()
         return code
 
     # Generate OpenCL code for second step
     def generate_second_step_opencl(self, configuration):
         # TODO: implement the method
-        self.configuration = configuration
+        self.configuration_first = configuration
         code = str()
         return code
 
@@ -189,7 +189,7 @@ class Statistics1D:
         counter = 0.0
         mean = 0.0
         variance = 0.0
-        for item in range(0, self.configuration["thread_blocks"] * 3, 3):
+        for item in range(0, self.configuration_first["thread_blocks"] * 3, 3):
             temp = data[item + 1] - mean
             mean = ((counter * mean) + (data[item] * data[item + 1])) / (counter + data[item])
             variance = variance + data[item + 2] + ((temp * temp) * ((counter * data[item]) / (counter + data[item])))
@@ -199,12 +199,22 @@ class Statistics1D:
         if result is False:
             numpy.set_printoptions(precision=6, suppress=True)
             print(control_data)
-            print(data[0:(self.configuration["thread_blocks"] * 3)])
+            print(data[0:(self.configuration_first["thread_blocks"] * 3)])
             print([counter, mean, variance])
         return result
 
     def verify_second_step(self, control_data, data, atol=None):
-        result = numpy.allclose(control_data, data, atol)
+        counter = 0.0
+        mean = 0.0
+        variance = 0.0
+        for item in range(0, self.input_size, 3):
+            temp = control_data[item + 1] - mean
+            mean = ((counter * mean) + (control_data[item] * control_data[item + 1])) / (counter + control_data[item])
+            variance = variance + control_data[item + 2] + ((temp * temp) * ((counter * control_data[item])
+                                                                             / (counter + control_data[item])))
+            counter = counter + control_data[item]
+        variance = variance / (counter - 1)
+        result = numpy.allclose([mean, numpy.sqrt(variance)], data, atol)
         if result is False:
             numpy.set_printoptions(precision=6, suppress=True)
             print(control_data)
