@@ -90,7 +90,7 @@ class Statistics1D:
                 value_id += <%THREADS_PER_BLOCK%> ) {
                 float3 triplet = triplets[value_id];
                 
-                temp = temp.y - mean_0;
+                temp = triplet.y - mean_0;
                 mean_0 = ((counter_0 * mean_0) + (triplet.x * triplet.y)) / (counter_0 + triplet.x);
                 variance_0 += triplet.z + ((temp * temp) * ((counter_0 * triplet.x) / (counter_0 + triplet.x)));
                 counter_0 += triplet.x;
