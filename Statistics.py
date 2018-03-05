@@ -215,7 +215,8 @@ class Statistics1D:
         variance = variance / (counter - 1)
         return [mean, math.sqrt(variance)]
 
-    def verify_second_step(self, control_data, data, atol=None):
+    @staticmethod
+    def verify_second_step(control_data, data, atol=None):
         result = numpy.allclose(control_data, data, atol)
         if result is False:
             numpy.set_printoptions(precision=6, suppress=True)
