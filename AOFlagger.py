@@ -32,7 +32,7 @@ def tune_statistics_1D(input_size, language):
         print(error)
     # Second kernel
     tuning_parameters_second = dict()
-    tuning_parameters_second["block_size_x"] = [2 ** x for x in range(5, 11)]
+    tuning_parameters_second["block_size_x"] = [2**x for x in range(0, 11)]
     tuning_parameters_second["thread_blocks"] = [1]
     results_second = dict()
     for blocks in tuning_parameters_first["thread_blocks"]:
