@@ -8,29 +8,54 @@ import Statistics
 def tune_statistics_1D(input_size, language):
     # First kernel
     kernel = Statistics.Statistics1D(input_size)
-    tuning_parameters = dict()
-    tuning_parameters["type"] = ["float"]
-    tuning_parameters["block_size_x"] = [2**x for x in range(5, 11)]
-    tuning_parameters["items_per_thread"] = [2**x for x in range(0, 8)]
-    tuning_parameters["thread_blocks"] = [2**x for x in range(0, 17)]
+    tuning_parameters_first = dict()
+    tuning_parameters_first["type"] = ["float"]
+    tuning_parameters_first["block_size_x"] = [2**x for x in range(5, 11)]
+    tuning_parameters_first["items_per_thread"] = [2**x for x in range(0, 8)]
+    tuning_parameters_first["thread_blocks"] = [2**x for x in range(0, 17)]
     constraints = ["(thread_blocks * block_size_x * items_per_thread) <= " + str(input_size),
                    "(" + str(input_size) + "- math.ceil(" + str(input_size)
                    + " / thread_blocks) * (thread_blocks - 1)) >= int(block_size_x / 2)"]
-    # Data
     data = numpy.random.randn(input_size).astype(numpy.float32)
-    statistics = numpy.zeros(max(tuning_parameters["thread_blocks"]) * 3).astype(numpy.float32)
-    kernel_arguments = [data, statistics]
-    # Control data
+    triplets = numpy.zeros(max(tuning_parameters_first["thread_blocks"]) * 3).astype(numpy.float32)
+    kernel_arguments = [data, triplets]
     control_arguments = [None, numpy.asarray([input_size, data.mean(), data.var()])]
     try:
         if language == "CUDA":
-                results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
-                                           kernel_arguments, tuning_parameters, lang=language, restrictions=constraints,
-                                           grid_div_x=[], iterations=3, answer=control_arguments, verify=kernel.verify,
-                                           atol=1.0e-03)
+                results_first = kernel_tuner.tune_kernel("compute_statistics_1D_first_step",
+                                                         kernel.generate_first_step_cuda, "thread_blocks",
+                                                         kernel_arguments, tuning_parameters_first, lang=language,
+                                                         restrictions=constraints, grid_div_x=[], iterations=3,
+                                                         answer=control_arguments, verify=kernel.verify_first_step,
+                                                         atol=1.0e-03)
     except Exception as error:
         print(error)
     # Second kernel
+    tuning_parameters_second = dict()
+    tuning_parameters_second["block_size_x"] = [2 ** x for x in range(5, 11)]
+    tuning_parameters_second["thread_blocks"] = [1]
+    results_second = dict()
+    for blocks in tuning_parameters_first["thread_blocks"]:
+        triplets = numpy.random.randn(blocks * 3).astype(numpy.float32)
+        statistics = numpy.zeros(2).astype(numpy.float32)
+        kernel_arguments = [triplets, statistics]
+        constraints = ["block_size_x <= " + str(blocks)]
+        control_arguments = [None, numpy.asarray([triplets.mean(), triplets.std()])]
+        try:
+            if language == "CUDA":
+                results = kernel_tuner.tune_kernel("compute_statistics_1D_second_step",
+                                                   kernel.generate_second_step_cuda, "thread_blocks", kernel_arguments,
+                                                   tuning_parameters_second, lang=language, restrictions=constraints,
+                                                   grid_div_x=[], iterations=3, answer=control_arguments,
+                                                   verify=kernel.verify_second_step, atol=1.0e-03)
+                results_second[blocks] = results
+        except Exception as error:
+            print(error)
+    # Tuning totals
+    for first_kernel in results_first:
+        first_kernel["total"] = first_kernel["time"] + min(results_second[first_kernel["thread_blocks"]],
+                                                           key=lambda x:x["time"])
+
 
 if __name__ == "__main__":
     # Parse command line
@@ -40,5 +65,6 @@ if __name__ == "__main__":
     parser.add_argument("--tune_statistics_1D", help="Tune \"compute_statistics_1D()\" kernel.",
                         action="store_true")
     arguments = parser.parse_args()
+    # Tuning
     if arguments.tune_statistics_1D is True:
         tune_statistics_1D(arguments.input_size, arguments.language)
