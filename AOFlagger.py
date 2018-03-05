@@ -1,13 +1,12 @@
-import kernel_tuner
+import argparse
 import numpy
+import kernel_tuner
 
 import Statistics
 
 
-def tune_statistics_1D():
-    input_size = 25000
-
-    # Kernel
+def tune_statistics_1D(input_size):
+    # First kernel
     kernel = Statistics.Statistics1D(input_size)
     tuning_parameters = dict()
     tuning_parameters["type"] = ["float"]
@@ -23,7 +22,6 @@ def tune_statistics_1D():
     kernel_arguments = [data, statistics]
     # Control data
     control_arguments = [None, numpy.asarray([input_size, data.mean(), data.var()])]
-
     try:
         results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
                                            kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints,
@@ -31,7 +29,14 @@ def tune_statistics_1D():
                                            atol=1.0e-03)
     except Exception as error:
         print(error)
-
+    # Second kernel
 
 if __name__ == "__main__":
-    tune_statistics_1D()
+    # Parse command line
+    parser = argparse.ArgumentParser(description="AOFmcKT: AOFlagger many-core Kernels Tuner")
+    parser.add_argument("--tune_statistics_1D", help="Tune \"compute_statistics_1D()\" kernel.",
+                        action="tune_statistics_1D")
+    parser.add_argument("--input_size", help="Input size.", required=True, type=int)
+    parser.add_argument("--language", help="Language: CUDA or OpenCL.", required=True)
+    arguments = parser.parse_args()
+    tune_statistics_1D(arguments.input_size)
