@@ -54,12 +54,13 @@ def tune_statistics_1D(input_size, language):
         except Exception as error:
             print(error)
     # Tuning totals
-    for first_kernel in results_first:
-        if first_kernel["thread_blocks"] == 1:
-            first_kernel["total"] = first_kernel["time"]
+    for index, configuration in enumerate(results_first):
+        if configuration[index]["thread_blocks"] == 1:
+            configuration[index]["total"] = configuration[index]["time"]
         else:
-            first_kernel["total"] = first_kernel["time"] + min(results_second[first_kernel["thread_blocks"]],
-                                                           key=lambda x:x["time"])
+            configuration[index]["total"] = configuration[index]["time"] \
+                                            + min(results_second[configuration[index]["thread_blocks"]],
+                                                  key=lambda x:x["time"])
 
 
 if __name__ == "__main__":
