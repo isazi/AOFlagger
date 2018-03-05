@@ -7,7 +7,7 @@ class Statistics1D:
     input_size = int()
     configuration = dict()
 
-    CUDA_TEMPLATE = """__global__ void compute_statistics_1D(const <%TYPE%> * const input_data, 
+    CUDA_TEMPLATE_FIRST = """__global__ void compute_statistics_1D_first_step(const <%TYPE%> * const input_data, 
             float * const statistics) {
         <%LOCAL_VARIABLES%>
         float temp;
@@ -76,14 +76,59 @@ class Statistics1D:
             / (counter_0 + counter_<%ITEM_NUMBER%>)));
         counter_0 += counter_<%ITEM_NUMBER%>;
     """
+    CUDA_TEMPLATE_SECOND = """__global__ void compute_statistics_1D_second_step(const float3 * const triplets, 
+                float * const statistics) {
+            float temp;
+            float counter_0 = 0.0f;
+            float mean_0 = 0.0f;
+            float variance_0 = 0.0f;
+            __shared__ float reduction_counter[<%THREADS_PER_BLOCK%>];
+            __shared__ float reduction_mean[<%THREADS_PER_BLOCK%>];
+            __shared__ float reduction_variance[<%THREADS_PER_BLOCK%>];
+
+            for ( unsigned int value_id = threadIdx.x; value_id < <%ITEMS_PER_BLOCK%>; 
+                value_id += <%THREADS_PER_BLOCK%> ) {
+                float3 triplet = triplets[value_id];
+                
+                temp = temp.y - mean_0;
+                mean_0 = ((counter_0 * mean_0) + (triplet.x * triplet.y)) / (counter_0 + triplet.x);
+                variance_0 += triplet.z + ((temp * temp) * ((counter_0 * triplet.x) / (counter_0 + triplet.x)));
+                counter_0 += triplet.x;
+            }
+            reduction_counter[threadIdx.x] = counter_0;
+            reduction_mean[threadIdx.x] = mean_0;
+            reduction_variance[threadIdx.x] = variance_0;
+            __syncthreads();
+            unsigned int threshold = <%THREADS_PER_BLOCK_HALVED%>;
+            for ( unsigned int value_id = threadIdx.x; threshold > 0; threshold /= 2 ) {
+                if ( value_id < threshold ) {
+                    temp = reduction_mean[value_id + threshold] - mean_0;
+                    mean_0 = ((counter_0 * mean_0) + (reduction_counter[value_id + threshold] 
+                        * reduction_mean[value_id + threshold])) 
+                        / (counter_0 + reduction_counter[value_id + threshold]);
+                    variance_0 += reduction_variance[value_id + threshold] + ((temp * temp) 
+                        * ((counter_0 * reduction_counter[value_id + threshold]) 
+                        / (counter_0 + reduction_counter[value_id + threshold])));
+                    counter_0 += reduction_counter[value_id + threshold];
+                    reduction_mean[threadIdx.x] = mean_0;
+                    reduction_variance[threadIdx.x] = variance_0;
+                    reduction_counter[threadIdx.x] = counter_0;
+                }
+                __syncthreads();
+            }
+            if ( threadIdx.x == 0 ) {
+                statistics[blockIdx.x] = mean_0;
+                statistics[blockIdx.x + 1] = sqrt(variance_0 / (counter_0 - 1));
+            }
+        }"""
 
     def __init__(self, size):
         self.input_size = size
 
-    # Generate CUDA code
-    def generate_cuda(self, configuration):
+    # Generate CUDA code for first step
+    def generate_first_step_cuda(self, configuration):
         self.configuration = configuration
-        code = Statistics1D.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
+        code = Statistics1D.CUDA_TEMPLATE_FIRST.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
                                                                  / int(configuration["thread_blocks"]))))
@@ -101,7 +146,7 @@ class Statistics1D:
             else:
                 local_compute = local_compute + Statistics1D.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
                 local_compute = local_compute.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
-                                                                 / int(configuration["thread_blocks"]))))
+                                                                                / int(configuration["thread_blocks"]))))
                 local_compute = local_compute.replace("<%INPUT_SIZE%>", str(self.input_size))
             if item == 0:
                 local_compute = local_compute.replace(" + <%ITEM_OFFSET%>", "")
@@ -119,13 +164,21 @@ class Statistics1D:
             code = code.replace("<%THREAD_REDUCE%>", "")
         return code
 
-    # Generate OpenCL code
-    def generate_opencl(self, configuration):
+    # Generate CUDA code for second step
+    def generate_second_step_cuda(self, configuration):
+        code = Statistics1D.CUDA_TEMPLATE_SECOND.replace("<%THREADS_PER_BLOCK%>", configuration["block_size_x"])
+        code = code.replace("<%ITEMS_PER_BLOCK%>", self.configuration["thread_blocks"])
+        code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(int(configuration["block_size_x"]) / 2)))
+        return code
+
+    # Generate OpenCL code for first step
+    def generate_first_step_opencl(self, configuration):
+        # TODO: implement the method
         self.configuration = configuration
         code = str()
         return code
 
-    def verify(self, control_data, data, atol=None):
+    def verify_first_step(self, control_data, data, atol=None):
         counter = 0.0
         mean = 0.0
         variance = 0.0
@@ -142,3 +195,6 @@ class Statistics1D:
             print(data[0:(self.configuration["thread_blocks"] * 3)])
             print([counter, mean, variance])
         return result
+
+    def verify_second_step(self, control_data, data, atol=None):
+        return numpy.allclose(control_data, data, atol)
