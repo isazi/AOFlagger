@@ -178,6 +178,13 @@ class Statistics1D:
         code = str()
         return code
 
+    # Generate OpenCL code for second step
+    def generate_second_step_opencl(self, configuration):
+        # TODO: implement the method
+        self.configuration = configuration
+        code = str()
+        return code
+
     def verify_first_step(self, control_data, data, atol=None):
         counter = 0.0
         mean = 0.0
