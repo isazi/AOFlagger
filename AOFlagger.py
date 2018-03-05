@@ -42,7 +42,7 @@ def tune_statistics_1D(input_size, language):
         statistics = numpy.zeros(2).astype(numpy.float32)
         kernel_arguments = [triplets, statistics]
         constraints = ["block_size_x <= " + str(blocks)]
-        control_arguments = [triplets, None]
+        control_arguments = [None, kernel.generate_control_data_second_step(triplets)]
         try:
             if language == "CUDA":
                 results = kernel_tuner.tune_kernel("compute_statistics_1D_second_step",
