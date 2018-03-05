@@ -35,8 +35,9 @@ if __name__ == "__main__":
     # Parse command line
     parser = argparse.ArgumentParser(description="AOFmcKT: AOFlagger many-core Kernels Tuner")
     parser.add_argument("--tune_statistics_1D", help="Tune \"compute_statistics_1D()\" kernel.",
-                        action="tune_statistics_1D")
+                        action="store_true")
     parser.add_argument("--input_size", help="Input size.", required=True, type=int)
-    parser.add_argument("--language", help="Language: CUDA or OpenCL.", required=True)
+    parser.add_argument("--language", help="Language: CUDA or OpenCL.", choices=["CUDA", "OpenCL"], required=True)
     arguments = parser.parse_args()
-    tune_statistics_1D(arguments.input_size)
+    if arguments.tune_statistics_1D is True:
+        tune_statistics_1D(arguments.input_size)
