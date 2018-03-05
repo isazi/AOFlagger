@@ -214,7 +214,7 @@ class Statistics1D:
                                                                              / (counter + control_data[item])))
             counter = counter + control_data[item]
         variance = variance / (counter - 1)
-        result = numpy.allclose([mean, numpy.sqrt(variance)], data, atol)
+        result = numpy.allclose([mean, math.sqrt(variance)], data, atol)
         if result is False:
             numpy.set_printoptions(precision=6, suppress=True)
             print(control_data)
