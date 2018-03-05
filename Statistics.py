@@ -166,8 +166,8 @@ class Statistics1D:
 
     # Generate CUDA code for second step
     def generate_second_step_cuda(self, configuration):
-        code = Statistics1D.CUDA_TEMPLATE_SECOND.replace("<%THREADS_PER_BLOCK%>", configuration["block_size_x"])
-        code = code.replace("<%ITEMS_PER_BLOCK%>", self.configuration["thread_blocks"])
+        code = Statistics1D.CUDA_TEMPLATE_SECOND.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
+        code = code.replace("<%ITEMS_PER_BLOCK%>", str(self.configuration["thread_blocks"]))
         code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(int(configuration["block_size_x"]) / 2)))
         return code
 
