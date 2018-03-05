@@ -5,7 +5,7 @@ import kernel_tuner
 import Statistics
 
 
-def tune_statistics_1D(input_size):
+def tune_statistics_1D(input_size, language):
     # First kernel
     kernel = Statistics.Statistics1D(input_size)
     tuning_parameters = dict()
@@ -23,8 +23,9 @@ def tune_statistics_1D(input_size):
     # Control data
     control_arguments = [None, numpy.asarray([input_size, data.mean(), data.var()])]
     try:
-        results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
-                                           kernel_arguments, tuning_parameters, lang="CUDA", restrictions=constraints,
+        if language == "CUDA":
+                results = kernel_tuner.tune_kernel("compute_statistics_1D", kernel.generate_cuda, "thread_blocks",
+                                           kernel_arguments, tuning_parameters, lang=language, restrictions=constraints,
                                            grid_div_x=[], iterations=3, answer=control_arguments, verify=kernel.verify,
                                            atol=1.0e-03)
     except Exception as error:
@@ -40,4 +41,4 @@ if __name__ == "__main__":
     parser.add_argument("--language", help="Language: CUDA or OpenCL.", choices=["CUDA", "OpenCL"], required=True)
     arguments = parser.parse_args()
     if arguments.tune_statistics_1D is True:
-        tune_statistics_1D(arguments.input_size)
+        tune_statistics_1D(arguments.input_size, arguments.language)
