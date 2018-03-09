@@ -23,7 +23,7 @@ def tune_statistics_1D(input_size, language):
     results_first = dict()
     try:
         if language == "CUDA":
-                results_first = kernel_tuner.tune_kernel("compute_statistics_1D_first_step",
+                results_first, platform = kernel_tuner.tune_kernel("compute_statistics_1D_first_step",
                                                          kernel.generate_first_step_cuda, "thread_blocks",
                                                          kernel_arguments, tuning_parameters_first, lang=language,
                                                          restrictions=constraints, grid_div_x=[], iterations=3,
@@ -45,7 +45,7 @@ def tune_statistics_1D(input_size, language):
         control_arguments = [None, numpy.asarray(kernel.generate_control_data_second_step(triplets))]
         try:
             if language == "CUDA":
-                results = kernel_tuner.tune_kernel("compute_statistics_1D_second_step",
+                results, platform = kernel_tuner.tune_kernel("compute_statistics_1D_second_step",
                                                    kernel.generate_second_step_cuda, "thread_blocks", kernel_arguments,
                                                    tuning_parameters_second, lang=language, restrictions=constraints,
                                                    grid_div_x=[], iterations=3, answer=control_arguments,
