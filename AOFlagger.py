@@ -29,7 +29,7 @@ def tune_statistics_1D(input_size, language):
                                                                restrictions=constraints, grid_div_x=[], iterations=3,
                                                                answer=control_arguments,
                                                                verify=kernel.verify_first_step,
-                                                               atol=1.0e-03)
+                                                               atol=1.0e-03, quiet=True)
     except Exception as error:
         print(error)
     # Second kernel
@@ -52,7 +52,7 @@ def tune_statistics_1D(input_size, language):
                                                              tuning_parameters_second, lang=language,
                                                              restrictions=constraints,
                                                              grid_div_x=[], iterations=3, answer=control_arguments,
-                                                             verify=kernel.verify_second_step, atol=1.0e-03)
+                                                             verify=kernel.verify_second_step, atol=1.0e-03, quiet=True)
                 results_second[blocks] = results
         except Exception as error:
             print(error)
@@ -64,8 +64,7 @@ def tune_statistics_1D(input_size, language):
             configuration["total"] = configuration["time"] \
                                      + min(results_second[configuration["thread_blocks"]],
                                            key=lambda x: x["time"])["time"]
-    best_config = min(results_first, key=lambda x: x["total"])
-    print("Best config: " + best_config)
+    return min(results_first, key=lambda x: x["total"])
 
 
 if __name__ == "__main__":
@@ -78,4 +77,4 @@ if __name__ == "__main__":
     arguments = parser.parse_args()
     # Tuning
     if arguments.tune_statistics_1D is True:
-        tune_statistics_1D(arguments.input_size, arguments.language)
+        print(tune_statistics_1D(arguments.input_size, arguments.language))
