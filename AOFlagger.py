@@ -10,9 +10,9 @@ def tune_statistics_1D(input_size, language):
     kernel = Statistics.Statistics1D(input_size)
     tuning_parameters_first = dict()
     tuning_parameters_first["type"] = ["float"]
-    tuning_parameters_first["block_size_x"] = [2**x for x in range(5, 11)]
-    tuning_parameters_first["items_per_thread"] = [2**x for x in range(0, 8)]
-    tuning_parameters_first["thread_blocks"] = [2**x for x in range(0, 17)]
+    tuning_parameters_first["block_size_x"] = [2 ** x for x in range(5, 11)]
+    tuning_parameters_first["items_per_thread"] = [2 ** x for x in range(0, 8)]
+    tuning_parameters_first["thread_blocks"] = [2 ** x for x in range(0, 17)]
     constraints = ["(thread_blocks * block_size_x * items_per_thread) <= " + str(input_size),
                    "(" + str(input_size) + "- math.ceil(" + str(input_size)
                    + " / thread_blocks) * (thread_blocks - 1)) >= int(block_size_x / 2)"]
@@ -23,17 +23,18 @@ def tune_statistics_1D(input_size, language):
     results_first = dict()
     try:
         if language == "CUDA":
-                results_first, platform = kernel_tuner.tune_kernel("compute_statistics_1D_first_step",
-                                                         kernel.generate_first_step_cuda, "thread_blocks",
-                                                         kernel_arguments, tuning_parameters_first, lang=language,
-                                                         restrictions=constraints, grid_div_x=[], iterations=3,
-                                                         answer=control_arguments, verify=kernel.verify_first_step,
-                                                         atol=1.0e-03)
+            results_first, platform = kernel_tuner.tune_kernel("compute_statistics_1D_first_step",
+                                                               kernel.generate_first_step_cuda, "thread_blocks",
+                                                               kernel_arguments, tuning_parameters_first, lang=language,
+                                                               restrictions=constraints, grid_div_x=[], iterations=3,
+                                                               answer=control_arguments,
+                                                               verify=kernel.verify_first_step,
+                                                               atol=1.0e-03)
     except Exception as error:
         print(error)
     # Second kernel
     tuning_parameters_second = dict()
-    tuning_parameters_second["block_size_x"] = [2**x for x in range(1, 11)]
+    tuning_parameters_second["block_size_x"] = [2 ** x for x in range(1, 11)]
     tuning_parameters_second["thread_blocks"] = [1]
     results_second = dict()
     for blocks in tuning_parameters_first["thread_blocks"]:
@@ -46,10 +47,12 @@ def tune_statistics_1D(input_size, language):
         try:
             if language == "CUDA":
                 results, platform = kernel_tuner.tune_kernel("compute_statistics_1D_second_step",
-                                                   kernel.generate_second_step_cuda, "thread_blocks", kernel_arguments,
-                                                   tuning_parameters_second, lang=language, restrictions=constraints,
-                                                   grid_div_x=[], iterations=3, answer=control_arguments,
-                                                   verify=kernel.verify_second_step, atol=1.0e-03)
+                                                             kernel.generate_second_step_cuda, "thread_blocks",
+                                                             kernel_arguments,
+                                                             tuning_parameters_second, lang=language,
+                                                             restrictions=constraints,
+                                                             grid_div_x=[], iterations=3, answer=control_arguments,
+                                                             verify=kernel.verify_second_step, atol=1.0e-03)
                 results_second[blocks] = results
         except Exception as error:
             print(error)
@@ -59,8 +62,8 @@ def tune_statistics_1D(input_size, language):
             configuration["total"] = configuration["time"]
         else:
             configuration["total"] = configuration["time"] \
-                                            + min(results_second[configuration["thread_blocks"]],
-                                                  key=lambda x: x["time"])["time"]
+                                     + min(results_second[configuration["thread_blocks"]],
+                                           key=lambda x: x["time"])["time"]
     best_config = min(results_first, key=lambda x: x["total"])
     print("Best config: " + best_config)
 
