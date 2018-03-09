@@ -1,4 +1,3 @@
-
 import math
 import numpy
 
@@ -133,7 +132,7 @@ class Statistics1D:
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
                                                                  / int(configuration["thread_blocks"]))))
         code = code.replace("<%ITEMS_PER_ITERATION%>", str(int(configuration["block_size_x"])
-                            * int(configuration["items_per_thread"])))
+                                                           * int(configuration["items_per_thread"])))
         code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(int(configuration["block_size_x"]) / 2)))
         local_variables = str()
         local_compute = str()
@@ -145,8 +144,9 @@ class Statistics1D:
                 local_compute = local_compute + Statistics1D.LOCAL_COMPUTE_NOCHECK.replace("<%ITEM_NUMBER%>", str(item))
             else:
                 local_compute = local_compute + Statistics1D.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
-                local_compute = local_compute.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
-                                                                                / int(configuration["thread_blocks"]))))
+                local_compute = local_compute.replace("<%ITEMS_PER_BLOCK%>",
+                                                      str(math.ceil(self.input_size
+                                                                    / int(configuration["thread_blocks"]))))
                 local_compute = local_compute.replace("<%INPUT_SIZE%>", str(self.input_size))
             if item == 0:
                 local_compute = local_compute.replace(" + <%ITEM_OFFSET%>", "")
