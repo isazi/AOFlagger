@@ -60,7 +60,7 @@ def tune_statistics_1D(input_size, language):
         else:
             configuration[index]["total"] = configuration[index]["time"] \
                                             + min(results_second[configuration[index]["thread_blocks"]],
-                                                  key=lambda x:x["time"])
+                                                  key=lambda x: x["time"])
 
 
 if __name__ == "__main__":
