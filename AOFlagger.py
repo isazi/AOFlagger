@@ -67,7 +67,7 @@ def tune_statistics_1D(input_size, language):
                                            key=lambda x: x["time"])])
             combined_configurations[index][0]["total"] = configuration["time"] \
                                                          + combined_configurations[index][1]["time"]
-    return min(combined_configurations, key=lambda x: x["total"])
+    return min(combined_configurations, key=lambda x: x[0]["total"])
 
 
 if __name__ == "__main__":
