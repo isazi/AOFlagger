@@ -5,9 +5,9 @@ import kernel_tuner
 import Statistics
 
 
-def tune_statistics_1D(input_size, language):
+def tune_meanandstddev_1D(input_size, language):
     # First kernel
-    kernel = Statistics.Statistics1D(input_size)
+    kernel = Statistics.MeanAndStandardDeviation1D(input_size)
     tuning_parameters_first = dict()
     tuning_parameters_first["type"] = ["float"]
     tuning_parameters_first["block_size_x"] = [2 ** x for x in range(5, 11)]
@@ -38,7 +38,7 @@ def tune_statistics_1D(input_size, language):
     tuning_parameters_second["thread_blocks"] = [1]
     results_second = dict()
     for blocks in tuning_parameters_first["thread_blocks"]:
-        kernel = Statistics.Statistics1D(blocks * 3)
+        kernel = Statistics.MeanAndStandardDeviation1D(blocks * 3)
         triplets = numpy.random.random_integers(2, 2 + blocks, blocks * 3).astype(numpy.float32)
         statistics = numpy.zeros(2).astype(numpy.float32)
         kernel_arguments = [triplets, statistics]
@@ -75,9 +75,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="AOFmcKT: AOFlagger many-core Kernels Tuner")
     parser.add_argument("--input_size", help="Input size.", required=True, type=int)
     parser.add_argument("--language", help="Language: CUDA or OpenCL.", choices=["CUDA", "OpenCL"], required=True)
-    parser.add_argument("--tune_statistics_1D", help="Tune \"compute_statistics_1D()\" kernel.",
+    parser.add_argument("--tune_meanandstddev_1D", help="Tune \"compute_meanandstddev_1D()\" kernel.",
                         action="store_true")
     arguments = parser.parse_args()
     # Tuning
-    if arguments.tune_statistics_1D is True:
-        print(tune_statistics_1D(arguments.input_size, arguments.language))
+    if arguments.tune_meanandstddev_1D is True:
+        print(tune_meanandstddev_1D(arguments.input_size, arguments.language))

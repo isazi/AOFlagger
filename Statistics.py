@@ -2,7 +2,7 @@ import math
 import numpy
 
 
-class Statistics1D:
+class MeanAndStandardDeviation1D:
     input_size = int()
     configuration_first = dict()
 
@@ -127,7 +127,7 @@ class Statistics1D:
     # Generate CUDA code for first step
     def generate_first_step_cuda(self, configuration):
         self.configuration_first = configuration
-        code = Statistics1D.CUDA_TEMPLATE_FIRST.replace("<%TYPE%>", configuration["type"])
+        code = MeanAndStandardDeviation1D.CUDA_TEMPLATE_FIRST.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(math.ceil(self.input_size
                                                                  / int(configuration["thread_blocks"]))))
@@ -137,13 +137,13 @@ class Statistics1D:
         local_variables = str()
         local_compute = str()
         for item in range(0, int(configuration["items_per_thread"])):
-            local_variables = local_variables + Statistics1D.LOCAL_VARIABLES.replace("<%ITEM_NUMBER%>", str(item))
+            local_variables = local_variables + MeanAndStandardDeviation1D.LOCAL_VARIABLES.replace("<%ITEM_NUMBER%>", str(item))
             if self.input_size % \
                     (int(configuration["thread_blocks"]) * int(configuration["block_size_x"])
                      * int(configuration["items_per_thread"])) == 0:
-                local_compute = local_compute + Statistics1D.LOCAL_COMPUTE_NOCHECK.replace("<%ITEM_NUMBER%>", str(item))
+                local_compute = local_compute + MeanAndStandardDeviation1D.LOCAL_COMPUTE_NOCHECK.replace("<%ITEM_NUMBER%>", str(item))
             else:
-                local_compute = local_compute + Statistics1D.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
+                local_compute = local_compute + MeanAndStandardDeviation1D.LOCAL_COMPUTE_CHECK.replace("<%ITEM_NUMBER%>", str(item))
                 local_compute = local_compute.replace("<%ITEMS_PER_BLOCK%>",
                                                       str(math.ceil(self.input_size
                                                                     / int(configuration["thread_blocks"]))))
@@ -158,7 +158,7 @@ class Statistics1D:
         if int(configuration["items_per_thread"]) > 1:
             thread_reduce = str()
             for item in range(1, int(configuration["items_per_thread"])):
-                thread_reduce = thread_reduce + Statistics1D.THREAD_REDUCE.replace("<%ITEM_NUMBER%>", str(item))
+                thread_reduce = thread_reduce + MeanAndStandardDeviation1D.THREAD_REDUCE.replace("<%ITEM_NUMBER%>", str(item))
             code = code.replace("<%THREAD_REDUCE%>", thread_reduce)
         else:
             code = code.replace("<%THREAD_REDUCE%>", "")
@@ -166,7 +166,7 @@ class Statistics1D:
 
     # Generate CUDA code for second step
     def generate_second_step_cuda(self, configuration):
-        code = Statistics1D.CUDA_TEMPLATE_SECOND.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
+        code = MeanAndStandardDeviation1D.CUDA_TEMPLATE_SECOND.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(self.input_size))
         code = code.replace("<%THREADS_PER_BLOCK_HALVED%>", str(int(int(configuration["block_size_x"]) / 2)))
         return code
