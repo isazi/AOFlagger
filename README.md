@@ -11,6 +11,7 @@ In this repository I am toying around with some a real-time many-core implementa
 The input is a time series.
 Data could be one or two dimensional, in the scenario that we are currently investigating.
 The output is a flagging mask that, when applied to the data, cancels the RFI out.
+Or the mask could be only kept internally and applied to the input data, permanently modifying it.
 
 ### Statistics
 
@@ -27,3 +28,16 @@ In the original source code, the middle 80% of data is used, i.e. top and bottom
 
 Of all the statistics, the most expensive to compute is the median; this is, assuming the input data are not already ordered.
 Computing mean and standard deviation can be done in O(n) on the input data, without sorting; it is also possible to easily parallelize the computation of mean and standard deviation.
+
+#### Mean and Standard Deviation
+
+For mean and standard deviation we currently have a 1D implementation in CUDA. It does not assume that the data has been previously sorted.
+The kernel could be easily extended to 2D if the dimensions are independent, e.g. in case we need to compute mean and standard deviation of different frequency channels.
+
+#### Median
+
+- Sorting and indexing
+- [Introselect](https://en.wikipedia.org/wiki/Introselect)
+- [Quickselect](https://en.wikipedia.org/wiki/Quickselect)
+- Approximate median
+    - [Median of Medians](https://en.wikipedia.org/wiki/Median_of_medians)
