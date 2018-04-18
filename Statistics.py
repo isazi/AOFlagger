@@ -278,7 +278,7 @@ class MedianOfMedians1D:
         code = self.CUDA_TEMPLATE_FIRST_STEP.replace("<%STEP_SIZE%>", str(self.step_size))
         code = code.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
-        code = code.replace("<%HALF_STEP%>", str(math.ceil(self.step_size / 2)))
+        code = code.replace("<%HALF_STEP%>", str(math.floor(self.step_size / 2)))
         return code
 
     def __init__(self, input_size, step_size):
@@ -303,7 +303,7 @@ class MedianOfMedians1D:
         # Compute and store the median of each block
         medians_of_blocks = list()
         for block in blocks:
-            medians_of_blocks.append(sorted(block)[math.ceil(len(block) / 2)])
+            medians_of_blocks.append(sorted(block)[math.floor(len(block) / 2)])
         return medians_of_blocks
 
     @staticmethod
@@ -324,7 +324,7 @@ class MedianOfMedians1D:
         """
         medians_of_blocks = self.generate_control_data_first_step(data)
         # Compute and return median of medians
-        return sorted(medians_of_blocks)[math.ceil(len(medians_of_blocks) / 2)]
+        return sorted(medians_of_blocks)[math.floor(len(medians_of_blocks) / 2)]
 
     @staticmethod
     def verify_second_step(control_data, data, atol=None):
