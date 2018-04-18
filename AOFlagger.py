@@ -78,14 +78,14 @@ def tune_medianofmedians_1D(input_size, step_size, language):
     tuning_parameters_first["type"] = ["float"]
     tuning_parameters_first["block_size_x"] = [x for x in range(1, step_size + 1)]
     data = numpy.random.randn(input_size).astype(numpy.float32)
-    medians = numpy.zeros(math.floor(input_size / step_size)).astype(numpy.float32)
+    medians = numpy.zeros(math.ceil(input_size / step_size)).astype(numpy.float32)
     kernel_arguments = [data, medians]
-    control_arguments = [None, numpy.asarray([input_size, data.mean(), data.var()])]
+    control_arguments = [None, numpy.asarray(kernel.generate_control_data_first_step(data))]
     results_first = dict()
     try:
         if language == "CUDA":
             results_first, platform = kernel_tuner.tune_kernel("compute_median_of_medians_" + str(step_size) + "_1D_first_step",
-                                                               kernel.generate_first_step_cuda, "thread_blocks",
+                                                               kernel.generate_first_step_cuda, [math.ceil(input_size / step_size)],
                                                                kernel_arguments, tuning_parameters_first, lang=language,
                                                                grid_div_x=[], iterations=3,
                                                                answer=control_arguments,
