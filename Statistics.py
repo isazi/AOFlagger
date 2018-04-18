@@ -230,7 +230,7 @@ class MedianOfMedians1D:
     configuration_first = dict()
 
     CUDA_TEMPLATE_FIRST_STEP = """__global__ void compute_median_of_medians_<%STEP_SIZE%>_1D_first_step(const <%TYPE%> * const input_data, 
-            float * const medians) {
+            <%TYPE%> * const medians) {
         unsigned int first_global_item = blockIdx.x * <%STEP_SIZE%>;
         __shared__ <%TYPE%> local_data[<%STEP_SIZE%>];
         
