@@ -240,7 +240,7 @@ class MedianOfMedians1D:
         }
         __syncthreads();
         // Sort data
-        // Bitonic sort by by Linus Schoemaker
+        // Bitonic sort by Linus Schoemaker
         for ( unsigned int k = 2; k <= <%STEP_SIZE%>; k *= 2) {
             for ( unsigned int j = k / 2; j > 0; j /= 2) {
                 unsigned int ixj = threadIdx.x ^ j;
