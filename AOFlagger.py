@@ -1,5 +1,6 @@
 import argparse
 import numpy
+import math
 import kernel_tuner
 
 import Statistics
@@ -70,14 +71,43 @@ def tune_meanandstddev_1D(input_size, language):
     return min(combined_configurations, key=lambda x: x[0]["total"])
 
 
+def tune_medianofmedians_1D(input_size, step_size, language):
+    # First kernel
+    kernel = Statistics.MedianOfMedians1D(input_size, step_size)
+    tuning_parameters_first = dict()
+    tuning_parameters_first["type"] = ["float"]
+    tuning_parameters_first["block_size_x"] = [x for x in range(1, step_size + 1)]
+    data = numpy.random.randn(input_size).astype(numpy.float32)
+    medians = numpy.zeros(math.floor(input_size / step_size)).astype(numpy.float32)
+    kernel_arguments = [data, medians]
+    control_arguments = [None, numpy.asarray([input_size, data.mean(), data.var()])]
+    results_first = dict()
+    try:
+        if language == "CUDA":
+            results_first, platform = kernel_tuner.tune_kernel("compute_median_of_medians_" + str(step_size) + "_1D_first_step",
+                                                               kernel.generate_first_step_cuda, "thread_blocks",
+                                                               kernel_arguments, tuning_parameters_first, lang=language,
+                                                               grid_div_x=[], iterations=3,
+                                                               answer=control_arguments,
+                                                               verify=kernel.verify_first_step,
+                                                               atol=1.0e-06, quiet=True)
+    except Exception as error:
+        print(error)
+    print(results_first)
+
+
 if __name__ == "__main__":
     # Parse command line
     parser = argparse.ArgumentParser(description="AOFmcKT: AOFlagger many-core Kernels Tuner")
     parser.add_argument("--input_size", help="Input size.", required=True, type=int)
     parser.add_argument("--language", help="Language: CUDA or OpenCL.", choices=["CUDA", "OpenCL"], required=True)
-    parser.add_argument("--tune_meanandstddev_1D", help="Tune \"compute_meanandstddev_1D()\" kernel.",
+    parser.add_argument("--tune_meanandstddev_1D", help="Tune mean and standard deviation 1D kernel.",
                         action="store_true")
+    parser.add_argument("--tune_medianofmedians_1D", help="Tune median of medians 1D kernel.", action="store_true")
+    parser.add_argument("--step_size", help="Step size for the median of medians.", type=int)
     arguments = parser.parse_args()
     # Tuning
     if arguments.tune_meanandstddev_1D is True:
         print(tune_meanandstddev_1D(arguments.input_size, arguments.language))
+    elif arguments.tune_medianofmedians_1D is True:
+        print(tune_medianofmedians_1D(arguments.input_size, arguments.step_size, arguments.language))
