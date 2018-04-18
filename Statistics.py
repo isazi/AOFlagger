@@ -239,6 +239,12 @@ class MedianOfMedians1D:
         self.step_size = step_size
 
     def generate_control_data_second_step(self, data):
+        """
+        Compute the median of medians.
+
+        :param data: a numpy array containing the input data
+        :return: the computed median of medians
+        """
         # Divide input in blocks of size 'step_size'
         blocks = [data[i:i+self.step_size] for i in range(0, self.input_size, self.step_size)]
         # Compute and store the median of each block
