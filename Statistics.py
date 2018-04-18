@@ -278,7 +278,7 @@ class MedianOfMedians1D:
         code = self.CUDA_TEMPLATE_FIRST_STEP.replace("<%STEP_SIZE%>", str(self.step_size))
         code = code.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%NUMBER_OF_THREADS%>", str(configuration["block_size_x"]))
-        code = code.replace("<%HALF_STEP%>", str(math.ceil(self.step_size / 2)))
+        code = code.replace("<%HALF_STEP%>", str(math.ceil(self.step_size / 2)))
         return code
 
     def __init__(self, input_size, step_size):
