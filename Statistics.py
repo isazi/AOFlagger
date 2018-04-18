@@ -227,6 +227,59 @@ class MeanAndStandardDeviation1D:
 class MedianOfMedians1D:
     input_size = int()
     step_size = int()
+    configuration_first = dict()
+
+    CUDA_TEMPLATE_FIRST_STEP = """__global__ void compute_median_of_medians_<%STEP_SIZE%>_1D_first_step(const <%TYPE%> * const input_data, 
+            float * const medians) {
+        unsigned int first_global_item = blockIdx.x * <%STEP_SIZE%>;
+        __shared__ <%TYPE%> local_data[<%STEP_SIZE%>];
+        
+        // Load data in shared memory
+        for ( unsigned int item = threadIdx.x; item < <%STEP_SIZE%>; item += <%THREADS_PER_BLOCK%> ) {
+            local_data[item] = input_data[first_global_item + item];
+        }
+        __syncthreads();
+        // Sort data
+        // Bitonic sort by by Linus Schoemaker
+        for ( unsigned int k = 2; k <= <%STEP_SIZE%>; k *= 2) {
+            for ( unsigned int j = k / 2; j > 0; j /= 2) {
+                unsigned int ixj = threadIdx.x ^ j;
+                if ( ixj > threadIdx.x ) {
+                    if ( (threadIdx.x & k) == 0 ) {
+                        if ( local_data[threadIdx.x] > local_data[ixj] ) {
+                            <%TYPE%> temp = local_data[threadIdx.x];
+                            local_data[threadIdx.x] = local_data[ixj];
+                            local_data[ixj] = temp;
+                        }
+                    } else {
+                        if ( local_data[threadIdx.x] < local_data[ixj] ) {
+                            <%TYPE%> temp = local_data[threadIdx.x];
+                            local_data[threadIdx.x] = local_data[ixj];
+                            local_data[ixj] = temp;
+                        }
+                    }
+                }
+                __syncthreads();
+            }
+        }
+        // Store median
+        if ( threadIdx.x == 0 ) {
+            medians[blockIdx.x] = local_data[<%HALF_STEP%>];
+        }
+        }"""
+
+    def generate_first_step_cuda(self, configuration):
+        """
+        Generate CUDA code for the first step.
+
+        :param configuration: kernel configuration
+        :return: generated CUDA code.
+        """
+        code = self.CUDA_TEMPLATE_FIRST_STEP.replace("<%STEP_SIZE%>", str(self.step_size))
+        code = code.replace("<%TYPE%>", configuration["type"])
+        code = code.replace("<%NUMBER_OF_THREADS%>", str(configuration["block_size_x"]))
+        code = code.replace("<%HALF_STEP%>", str(math.ceil(self.step_size / 2)))
+        return code
 
     def __init__(self, input_size, step_size):
         """
@@ -238,12 +291,12 @@ class MedianOfMedians1D:
         self.input_size = input_size
         self.step_size = step_size
 
-    def generate_control_data_second_step(self, data):
+    def generate_control_data_first_step(self, data):
         """
-        Compute the median of medians.
+        Compute the first partial array of medians.
 
         :param data: a numpy array containing the input data
-        :return: the computed median of medians
+        :return: a numpy array containing the medians
         """
         # Divide input in blocks of size 'step_size'
         blocks = [data[i:i+self.step_size] for i in range(0, self.input_size, self.step_size)]
@@ -251,8 +304,27 @@ class MedianOfMedians1D:
         medians_of_blocks = list()
         for block in blocks:
             medians_of_blocks.append(sorted(block)[math.ceil(len(block) / 2)])
+        return medians_of_blocks
+
+    @staticmethod
+    def verify_first_step(control_data, data, atol=None):
+        result = numpy.allclose(control_data, data, atol)
+        if result is False:
+            numpy.set_printoptions(precision=6, suppress=True)
+            print(control_data)
+            print(data)
+        return result
+
+    def generate_control_data_second_step(self, data):
+        """
+        Compute the median of medians.
+
+        :param data: a numpy array containing the input data
+        :return: the computed median of medians
+        """
+        medians_of_blocks = self.generate_control_data_first_step(data)
         # Compute and return median of medians
-        return sorted(medians_of_blocks)[math.ceil(len(block) / 2)]
+        return sorted(medians_of_blocks)[math.ceil(len(medians_of_blocks) / 2)]
 
     @staticmethod
     def verify_second_step(control_data, data, atol=None):
