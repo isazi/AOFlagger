@@ -223,3 +223,36 @@ class MeanAndStandardDeviation1D:
             print(control_data)
             print(data)
         return result
+
+class MedianOfMedians1D:
+    input_size = int()
+    step_size = int()
+
+    def __init__(self, input_size, step_size):
+        """
+        Constructor.
+
+        :param input_size: size of the input array
+        :param step_size: size of the step of which compute the real median
+        """
+        self.input_size = input_size
+        self.step_size = step_size
+
+    def generate_control_data_second_step(self, data):
+        # Divide input in blocks of size 'step_size'
+        blocks = [data[i:i+self.step_size] for i in range(0, self.input_size, self.step_size)]
+        # Compute and store the median of each block
+        medians_of_blocks = list()
+        for block in blocks:
+            medians_of_blocks.append(sorted(block)[math.ceil(len(block) / 2)])
+        # Compute and return median of medians
+        return sorted(medians_of_blocks)[math.ceil(len(block) / 2)]
+
+    @staticmethod
+    def verify_second_step(control_data, data, atol=None):
+        result = numpy.isclose(control_data, data, atol)
+        if result is False:
+            numpy.set_printoptions(precision=6, suppress=True)
+            print(control_data)
+            print(data)
+        return result
