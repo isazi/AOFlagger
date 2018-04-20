@@ -240,27 +240,18 @@ class MedianOfMedians1D:
         }
         __syncthreads();
         // Sort data
-        // Bitonic sort by Linus Schoemaker
-        for ( unsigned int k = 2; k <= <%STEP_SIZE%>; k *= 2) {
-            for ( unsigned int j = k / 2; j > 0; j /= 2) {
-                unsigned int ixj = threadIdx.x ^ j;
-                if ( ixj > threadIdx.x ) {
-                    if ( (threadIdx.x & k) == 0 ) {
-                        if ( local_data[threadIdx.x] > local_data[ixj] ) {
-                            <%TYPE%> temp = local_data[threadIdx.x];
-                            local_data[threadIdx.x] = local_data[ixj];
-                            local_data[ixj] = temp;
-                        }
-                    } else {
-                        if ( local_data[threadIdx.x] < local_data[ixj] ) {
-                            <%TYPE%> temp = local_data[threadIdx.x];
-                            local_data[threadIdx.x] = local_data[ixj];
-                            local_data[ixj] = temp;
-                        }
+        // Bubble Sort
+        for ( unsigned int step = 0; step < <%INPUT_SIZE%>; step++ ) {
+            if ( (threadIdx.x % 2) == (step % 2) ) {
+                for ( unsigned int item = threadIdx.x; item < <%INPUT_SIZE%> - 1; item += <%THREADS_PER_BLOCK%> ) {
+                    if ( local_data[item] > local_data[item + 1] ) {
+                        <%TYPE%> temp = local_data[item];
+                        local_data[item] = local_data[item + 1];
+                        local_data[item + 1] = temp;
                     }
                 }
-                __syncthreads();
             }
+            __syncthreads();
         }
         // Store median
         if ( threadIdx.x == 0 ) {
