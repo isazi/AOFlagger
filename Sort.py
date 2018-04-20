@@ -1,7 +1,7 @@
 
 import numpy
 
-class SharedMemorySort1D:
+class BubbleSortSharedMemory1D:
     input_size = int()
 
     CUDA_TEMPLATE = """__global__ void sharedmemory_sort_1D(const <%TYPE%> * const input_data, <%TYPE%> * const output_data) {
@@ -37,7 +37,7 @@ class SharedMemorySort1D:
     def generate_cuda(self, configuration):
         code = self.CUDA_TEMPLATE.replace("<%INPUT_SIZE%>", str(self.input_size))
         code = code.replace("<%TYPE%>", configuration["type"])
-        code = code.replace("<%STEPS%>", str(self.input_size.bit_length()))
+        code = code.replace("<%STEPS%>", str(self.input_size))
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
         return code
 

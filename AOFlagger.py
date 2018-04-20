@@ -97,8 +97,8 @@ def tune_medianofmedians_1D(input_size, step_size, language):
     print(results_first)
 
 
-def tune_sharedmemorysort_1D(input_size, language):
-    kernel = Sort.SharedMemorySort1D(input_size)
+def tune_bubblesort_1D(input_size, language):
+    kernel = Sort.BubbleSortSharedMemory1D(input_size)
     tuning_parameters_first = dict()
     tuning_parameters_first["type"] = ["float"]
     tuning_parameters_first["block_size_x"] = [2 ** x for x in range(1,11)]
@@ -106,10 +106,10 @@ def tune_sharedmemorysort_1D(input_size, language):
     sorted_data = numpy.zeros(input_size).astype(numpy.float32)
     kernel_arguments = [data, sorted_data]
     control_arguments = [None, numpy.asarray(sorted(data))]
-    results_first = dict()
+    results = dict()
     try:
         if language == "CUDA":
-            results_first, platform = kernel_tuner.tune_kernel("sharedmemory_sort_1D",
+            results, platform = kernel_tuner.tune_kernel("sharedmemory_sort_1D",
                                                                kernel.generate_cuda, [1],
                                                                kernel_arguments, tuning_parameters_first, lang=language,
                                                                grid_div_x=[], iterations=3,
@@ -118,7 +118,7 @@ def tune_sharedmemorysort_1D(input_size, language):
                                                                atol=1.0e-03, quiet=True)
     except Exception as error:
         print(error)
-    print(results_first)
+    return min(results, key=lambda x: x["time"])
 
 
 if __name__ == "__main__":
@@ -130,12 +130,12 @@ if __name__ == "__main__":
                         action="store_true")
     parser.add_argument("--tune_medianofmedians_1D", help="Tune median of medians 1D kernel.", action="store_true")
     parser.add_argument("--step_size", help="Step size for the median of medians.", type=int)
-    parser.add_argument("--tune_sharedmemorysort_1D", help="Tune the shared memory sort 1D kernel.", action="store_true")
+    parser.add_argument("--tune_bubblesort_1D", help="Tune bubble sort 1D kernel.", action="store_true")
     arguments = parser.parse_args()
     # Tuning
     if arguments.tune_meanandstddev_1D is True:
         print(tune_meanandstddev_1D(arguments.input_size, arguments.language))
     elif arguments.tune_medianofmedians_1D is True:
         print(tune_medianofmedians_1D(arguments.input_size, arguments.step_size, arguments.language))
-    elif arguments.tune_sharedmemorysort_1D is True:
-        print(tune_sharedmemorysort_1D(arguments.input_size, arguments.language))
+    elif arguments.tune_bubblesort_1D is True:
+        print(tune_bubblesort_1D(arguments.input_size, arguments.language))
