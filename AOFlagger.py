@@ -106,7 +106,7 @@ def tune_medianofmedians_1D(input_size, step_size, language):
     results_second = dict()
     try:
         if language == "CUDA":
-            results_second, platform = kernel_tuner.tune_kernel("compute_median_of_medians_" + str(input_size) + "_1D",
+            results_second, platform = kernel_tuner.tune_kernel("compute_median_of_medians_" + str(math.ceil(input_size / step_size)) + "_1D",
                                                             kernel.generate_second_step_cuda, "thread_blocks",
                                                             kernel_arguments,
                                                             tuning_parameters_second, lang=language,
