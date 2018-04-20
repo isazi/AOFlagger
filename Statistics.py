@@ -229,7 +229,7 @@ class MedianOfMedians1D:
     step_size = int()
     configuration_first = dict()
 
-    CUDA_TEMPLATE_FIRST_STEP = """__global__ void compute_median_of_medians_<%STEP_SIZE%>_1D_first_step(const <%TYPE%> * const input_data, 
+    CUDA_TEMPLATE = """__global__ void compute_median_of_medians_<%STEP_SIZE%>_1D(const <%TYPE%> * const input_data, 
             <%TYPE%> * const medians) {
         unsigned int first_global_item = blockIdx.x * <%STEP_SIZE%>;
         __shared__ <%TYPE%> local_data[<%STEP_SIZE%>];
@@ -257,20 +257,7 @@ class MedianOfMedians1D:
         if ( threadIdx.x == 0 ) {
             medians[blockIdx.x] = local_data[<%HALF_STEP%>];
         }
-        }"""
-
-    def generate_first_step_cuda(self, configuration):
-        """
-        Generate CUDA code for the first step.
-
-        :param configuration: kernel configuration
-        :return: generated CUDA code.
-        """
-        code = self.CUDA_TEMPLATE_FIRST_STEP.replace("<%STEP_SIZE%>", str(self.step_size))
-        code = code.replace("<%TYPE%>", configuration["type"])
-        code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
-        code = code.replace("<%HALF_STEP%>", str(math.floor(self.step_size / 2)))
-        return code
+    }"""
 
     def __init__(self, input_size, step_size):
         """
@@ -281,6 +268,32 @@ class MedianOfMedians1D:
         """
         self.input_size = input_size
         self.step_size = step_size
+
+    def generate_first_step_cuda(self, configuration):
+        """
+        Generate CUDA code for the first step.
+
+        :param configuration: kernel configuration
+        :return: generated CUDA code.
+        """
+        code = self.CUDA_TEMPLATE.replace("<%STEP_SIZE%>", str(self.step_size))
+        code = code.replace("<%TYPE%>", configuration["type"])
+        code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
+        code = code.replace("<%HALF_STEP%>", str(math.floor(self.step_size / 2)))
+        return code
+
+    def generate_second_step_cuda(self, configuration):
+        """
+        Generate CUDA code for the second step.
+
+        :param configuration: kernel configuration
+        :return: generated CUDA code.
+        """
+        code = self.CUDA_TEMPLATE.replace("<%STEP_SIZE%>", str(self.input_size))
+        code = code.replace("<%TYPE%>", configuration["type"])
+        code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
+        code = code.replace("<%HALF_STEP%>", str(math.floor(self.input_size / 2)))
+        return code
 
     def generate_control_data_first_step(self, data):
         """
