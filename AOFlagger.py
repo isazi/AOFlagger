@@ -101,7 +101,7 @@ def tune_sharedmemorysort_1D(input_size, language):
     kernel = Sort.BitonicSortSharedMemory1D(input_size)
     tuning_parameters_first = dict()
     tuning_parameters_first["type"] = ["float"]
-    tuning_parameters_first["block_size_x"] = [2 ** x for x in range(0,11)]
+    tuning_parameters_first["block_size_x"] = [2 ** x for x in range(1,11)]
     data = numpy.random.randn(input_size).astype(numpy.float32)
     sorted_data = numpy.zeros(input_size).astype(numpy.float32)
     kernel_arguments = [data, sorted_data]
@@ -137,5 +137,5 @@ if __name__ == "__main__":
         print(tune_meanandstddev_1D(arguments.input_size, arguments.language))
     elif arguments.tune_medianofmedians_1D is True:
         print(tune_medianofmedians_1D(arguments.input_size, arguments.step_size, arguments.language))
-    elif arguments.tune_bitonicsort_sharedmemory_1D is True:
+    elif arguments.tune_sharedmemorysort_1D is True:
         print(tune_sharedmemorysort_1D(arguments.input_size, arguments.language))
