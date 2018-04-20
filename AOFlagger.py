@@ -98,7 +98,7 @@ def tune_medianofmedians_1D(input_size, step_size, language):
 
 
 def tune_sharedmemorysort_1D(input_size, language):
-    kernel = Sort.BitonicSortSharedMemory1D(input_size)
+    kernel = Sort.SharedMemorySort1D(input_size)
     tuning_parameters_first = dict()
     tuning_parameters_first["type"] = ["float"]
     tuning_parameters_first["block_size_x"] = [2 ** x for x in range(1,11)]
@@ -110,7 +110,7 @@ def tune_sharedmemorysort_1D(input_size, language):
     try:
         if language == "CUDA":
             results_first, platform = kernel_tuner.tune_kernel("sharedmemory_sort_1D",
-                                                               kernel.generate_cuda, input_size,
+                                                               kernel.generate_cuda, [1],
                                                                kernel_arguments, tuning_parameters_first, lang=language,
                                                                grid_div_x=[], iterations=3,
                                                                answer=control_arguments,

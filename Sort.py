@@ -15,7 +15,7 @@ class SharedMemorySort1D:
         // Sort data
         for ( unsigned int step = 0; step < <%STEPS%>; step++ ) {
             if ( (threadIdx.x % 2) == (step % 2) ) {
-                for ( unsigned int item = threadIdx.x; item < <%INPUT_SIZE%>; item += <%THREADS_PER_BLOCK%> ) {
+                for ( unsigned int item = threadIdx.x; item < <%INPUT_SIZE%> - 1; item += <%THREADS_PER_BLOCK%> ) {
                     if ( local_data[item] > local_data[item + 1] ) {
                         <%TYPE%> temp = local_data[item];
                         local_data[item] = local_data[item + 1];
@@ -23,7 +23,7 @@ class SharedMemorySort1D:
                     }
                 }
             }
-            __synchtreads();
+            __syncthreads();
         }
         // Store sorted output
         for ( unsigned int item = threadIdx.x; item < <%INPUT_SIZE%>; item += <%THREADS_PER_BLOCK%> ) {
@@ -37,6 +37,7 @@ class SharedMemorySort1D:
     def generate_cuda(self, configuration):
         code = self.CUDA_TEMPLATE.replace("<%INPUT_SIZE%>", str(self.input_size))
         code = code.replace("<%TYPE%>", configuration["type"])
+        code = code.replace("<%STEPS%>", str(self.input_size.bit_length())
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
         return code
 
