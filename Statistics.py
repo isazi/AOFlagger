@@ -241,9 +241,9 @@ class MedianOfMedians1D:
         __syncthreads();
         // Sort data
         // Bubble Sort
-        for ( unsigned int step = 0; step < <%INPUT_SIZE%>; step++ ) {
+        for ( unsigned int step = 0; step < <%STEP_SIZE%>; step++ ) {
             if ( (threadIdx.x % 2) == (step % 2) ) {
-                for ( unsigned int item = threadIdx.x; item < <%INPUT_SIZE%> - 1; item += <%THREADS_PER_BLOCK%> ) {
+                for ( unsigned int item = threadIdx.x; item < <%STEP_SIZE%> - 1; item += <%THREADS_PER_BLOCK%> ) {
                     if ( local_data[item] > local_data[item + 1] ) {
                         <%TYPE%> temp = local_data[item];
                         local_data[item] = local_data[item + 1];
