@@ -77,7 +77,7 @@ def tune_medianofmedians_1D(input_size, step_size, language):
     kernel = Statistics.MedianOfMedians1D(input_size, step_size)
     tuning_parameters_first = dict()
     tuning_parameters_first["type"] = ["float"]
-    tuning_parameters_first["block_size_x"] = [x for x in range(1, step_size + 1)]
+    tuning_parameters_first["block_size_x"] = [2 ** x for x in range(1, 11)]
     tuning_parameters_first["thread_blocks"] = [math.ceil(input_size / step_size)]
     data = numpy.random.randn(input_size).astype(numpy.float32)
     medians = numpy.zeros(math.ceil(input_size / step_size)).astype(numpy.float32)
