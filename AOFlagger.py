@@ -100,7 +100,6 @@ def tune_medianofmedians_1D(input_size, step_size, language):
     tuning_parameters_second["type"] = ["float"]
     tuning_parameters_second["block_size_x"] = [2 ** x for x in range(1, 11)]
     tuning_parameters_second["thread_blocks"] = [1]
-    results_second = dict()
     median = numpy.zeros(1).astype(numpy.float32)
     kernel_arguments = [numpy.asarray(kernel.generate_control_data_first_step(data)), median]
     control_arguments = [None, numpy.asarray(kernel.generate_control_data_second_step(data))]

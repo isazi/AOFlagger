@@ -289,10 +289,10 @@ class MedianOfMedians1D:
         :param configuration: kernel configuration
         :return: generated CUDA code.
         """
-        code = self.CUDA_TEMPLATE.replace("<%STEP_SIZE%>", str(self.input_size))
+        code = self.CUDA_TEMPLATE.replace("<%STEP_SIZE%>", str(math.ceil(self.input_size / self.step_size)))
         code = code.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%THREADS_PER_BLOCK%>", str(configuration["block_size_x"]))
-        code = code.replace("<%HALF_STEP%>", str(math.floor(self.input_size / 2)))
+        code = code.replace("<%HALF_STEP%>", str(math.floor(math.ceil(self.input_size / self.step_size) / 2)))
         return code
 
     def generate_control_data_first_step(self, data):
