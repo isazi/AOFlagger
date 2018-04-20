@@ -78,6 +78,7 @@ def tune_medianofmedians_1D(input_size, step_size, language):
     tuning_parameters_first = dict()
     tuning_parameters_first["type"] = ["float"]
     tuning_parameters_first["block_size_x"] = [x for x in range(1, step_size + 1)]
+    tuning_parameters_first["thread_blocks"] = [math.ceil(input_size / step_size)]
     data = numpy.random.randn(input_size).astype(numpy.float32)
     medians = numpy.zeros(math.ceil(input_size / step_size)).astype(numpy.float32)
     kernel_arguments = [data, medians]
@@ -85,8 +86,8 @@ def tune_medianofmedians_1D(input_size, step_size, language):
     results_first = dict()
     try:
         if language == "CUDA":
-            results_first, platform = kernel_tuner.tune_kernel("compute_median_of_medians_" + str(step_size) + "_1D_first_step",
-                                                               kernel.generate_first_step_cuda, [math.ceil(input_size / step_size)],
+            results_first, platform = kernel_tuner.tune_kernel("compute_median_of_medians_" + str(step_size) + "_1D",
+                                                               kernel.generate_first_step_cuda, "thread_blocks",
                                                                kernel_arguments, tuning_parameters_first, lang=language,
                                                                grid_div_x=[], iterations=3,
                                                                answer=control_arguments,
@@ -94,7 +95,31 @@ def tune_medianofmedians_1D(input_size, step_size, language):
                                                                atol=1.0e-06, quiet=True)
     except Exception as error:
         print(error)
-    return min(results_first, key=lambda x: x["time"])
+    # Second kernel
+    tuning_parameters_second = dict()
+    tuning_parameters_second["type"] = ["float"]
+    tuning_parameters_second["block_size_x"] = [2 ** x for x in range(1, 11)]
+    tuning_parameters_second["thread_blocks"] = [1]
+    results_second = dict()
+    median = numpy.zeros(1).astype(numpy.float32)
+    kernel_arguments = [numpy.asarray(kernel.generate_control_data_first_step(data)), median]
+    control_arguments = [None, numpy.asarray(kernel.generate_control_data_second_step(data))]
+    results_second = dict()
+    try:
+        if language == "CUDA":
+            results_second, platform = kernel_tuner.tune_kernel("compute_median_of_medians_" + str(input_size) + "_1D",
+                                                            kernel.generate_second_step_cuda, "thread_blocks",
+                                                            kernel_arguments,
+                                                            tuning_parameters_second, lang=language,
+                                                            grid_div_x=[], iterations=3, answer=control_arguments,
+                                                            verify=kernel.verify_second_step, atol=1.0e-03, quiet=True)
+    except Exception as error:
+        print(error)
+    # Tuning totals
+    combined_configurations = list()
+    combined_configurations.append(min(results_first, key=lambda x: x["time"]))
+    combined_configurations.append(min(results_second, key=lambda x: x["time"]))
+    return combined_configurations
 
 
 def tune_bubblesort_1D(input_size, language):
