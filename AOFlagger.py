@@ -94,7 +94,7 @@ def tune_medianofmedians_1D(input_size, step_size, language):
                                                                atol=1.0e-06, quiet=True)
     except Exception as error:
         print(error)
-    print(results_first)
+    return min(results_first, key=lambda x: x["time"])
 
 
 def tune_bubblesort_1D(input_size, language):
