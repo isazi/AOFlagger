@@ -41,3 +41,7 @@ The kernel could be easily extended to 2D if the dimensions are independent, e.g
 - [Quickselect](https://en.wikipedia.org/wiki/Quickselect)
 - Approximate median
     - [Median of Medians](https://en.wikipedia.org/wiki/Median_of_medians)
+
+#### Median Absolute Deviation (MAD)
+
+- [Wikipedia article](https://en.wikipedia.org/wiki/Median_absolute_deviation)
