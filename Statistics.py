@@ -356,12 +356,13 @@ class AbsoluteDeviation1D:
     def generate_cuda(self, configuration):
         code = self.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
         code = code.replace("<%ITEMS_PER_BLOCK%>", str(configuration["block_size_x"] * configuration["items_per_thread"]))
-        variables_store = str()
+        compute_store = str()
         for item in range(0, int(configuration["items_per_thread"])):
             if item == 0:
-                variables_store = variables_store + self.COMPUTE_STORE.replace(" + <%OFFSET%>", "")
+                compute_store = compute_store + self.COMPUTE_STORE.replace(" + <%OFFSET%>", "")
             else:
-                variables_store = variables_store + self.COMPUTE_STORE.replace("<%OFFSET%>", str(item * configuration["block_size_x"]))
+                compute_store = compute_store + self.COMPUTE_STORE.replace("<%OFFSET%>", str(item * configuration["block_size_x"]))
+        code = code.replace("<%COMPUTE_STORE%>", compute_store)
         return code
     
     def generate_control(self, data):
