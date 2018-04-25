@@ -153,7 +153,7 @@ def tune_absolutedeviation_1D(input_size, baseline, language):
     tuning_parameters["items_per_thread"] = [x for x in range(1, 64)]
     data = numpy.random.randn(input_size).astype(numpy.float32)
     output = numpy.zeros(input_size).astype(numpy.float32)
-    kernel_arguments = [numpy.asscalar(baseline), data, output]
+    kernel_arguments = [baseline, data, output]
     control_arguments = [None, None, kernel.generate_control(data)]
     results = dict()
     try:
