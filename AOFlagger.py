@@ -145,6 +145,31 @@ def tune_bubblesort_1D(input_size, language):
     return min(results, key=lambda x: x["time"])
 
 
+def tune_absolutedeviation_1D(input_size, baseline, language):
+    kernel = Statistics.AbsoluteDeviation1D(input_size, baseline)
+    tuning_parameters = dict()
+    tuning_parameters["type"] = ["float"]
+    tuning_parameters["block_size_x"] = [2**x for x in range(1,11)]
+    tuning_parameters["items_per_thread"] = [x for x in range(1, 64)]
+    data = numpy.random.randn(input_size).astype(numpy.float32)
+    output = numpy.zeros(input_size).astype(numpy.float32)
+    kernel_arguments = [numpy.asscalar(baseline), data, output]
+    control_arguments = [None, None, kernel.generate_control(data)]
+    results = dict()
+    try:
+        if language == "CUDA":
+            results, platform = kernel_tuner.tune_kernel("absolute_deviation_1D",
+                                                               kernel.generate_cuda, input_size,
+                                                               kernel_arguments, tuning_parameters, lang=language,
+                                                               grid_div_x=["block_size_x * items_per_thread"], iterations=3,
+                                                               answer=control_arguments,
+                                                               verify=kernel.verify,
+                                                               atol=1.0e-03, quiet=True)
+    except Exception as error:
+        print(error)
+    return min(results, key=lambda x: x["time"])
+
+
 if __name__ == "__main__":
     # Parse command line
     parser = argparse.ArgumentParser(description="AOFmcKT: AOFlagger many-core Kernels Tuner")
@@ -155,6 +180,8 @@ if __name__ == "__main__":
     parser.add_argument("--tune_medianofmedians_1D", help="Tune median of medians 1D kernel.", action="store_true")
     parser.add_argument("--step_size", help="Step size for the median of medians.", type=int)
     parser.add_argument("--tune_bubblesort_1D", help="Tune bubble sort 1D kernel.", action="store_true")
+    parser.add_argument("--tune_absolutedeviation_1D", help="Tune absolute deviation 1D kernel.", action="store_true")
+    parser.add_argument("--baseline", help="Baseline for the absolute deviation.", type=float)
     arguments = parser.parse_args()
     # Tuning
     if arguments.tune_meanandstddev_1D is True:
@@ -163,3 +190,5 @@ if __name__ == "__main__":
         print(tune_medianofmedians_1D(arguments.input_size, arguments.step_size, arguments.language))
     elif arguments.tune_bubblesort_1D is True:
         print(tune_bubblesort_1D(arguments.input_size, arguments.language))
+    elif arguments.tune_absolutedeviation_1D is True:
+        print(tune_absolutedeviation_1D(arguments.input_size, arguments.baseline, arguments.language))
