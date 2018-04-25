@@ -338,3 +338,43 @@ class MedianOfMedians1D:
             print(control_data)
             print(data)
         return result
+
+class AbsoluteDeviation1D:
+    input_size = int()
+    baseline = None
+
+    CUDA_TEMPLATE = """__global__ void absolute_deviation_1D(const <%TYPE%> baseline, const <%TYPE%> * const input_data, <%TYPE%> * const output_data) {
+        unsigned int item = (blockIdx.x * <%ITEMS_PER_BLOCK%>) + threadIdx.x;
+        <%COMPUTE_STORE%>
+    }"""
+    COMPUTE_STORE = "output_data[item + <%OFFSET%>] = abs(input_data[item + <%OFFSET%>] - baseline);"
+
+    def __init__(self, input_size, baseline):
+        self.input_size = input_size
+        self.baseline = baseline
+    
+    def generate_cuda(self, configuration):
+        code = self.CUDA_TEMPLATE.replace("<%TYPE%>", configuration["type"])
+        code = code.replace("<%ITEMS_PER_BLOCK%>", str(configuration["block_size_x"] * configuration["items_per_thread"]))
+        variables_store = str()
+        for item in range(0, int(configuration["items_per_thread"])):
+            if item == 0:
+                variables_store = variables_store + self.COMPUTE_STORE.replace(" + <%OFFSET%>", "")
+            else:
+                variables_store = variables_store + self.COMPUTE_STORE.replace("<%OFFSET%>", str(item * configuration["block_size_x"]))
+        return code
+    
+    def generate_control(self, data):
+        control_data = data.copy()
+        for item in range(0, self.input_size):
+            control_data[item] = control_data[item] - self.baseline
+        numpy.absolute(control_data, out=control_data)
+        return control_data
+
+    def verify(self, control_data, data, atol=None):
+        result = numpy.allclose(control_data, data, atol)
+        if result is False:
+            numpy.set_printoptions(precision=6, suppress=True)
+            print(control_data)
+            print(data)
+        return result
